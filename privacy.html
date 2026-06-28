@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whoop Diet — Privacy Policy</title>
+<style>
+  :root{--bg:#0d1117;--panel:#141b24;--line:#243140;--ink:#e8eef5;--ink-dim:#8a98a8;--goal:#3ee19a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:720px;margin:0 auto;padding:48px 22px 80px}
+  h1{font-size:26px;letter-spacing:-0.02em;margin-bottom:6px}
+  .updated{font-size:13px;color:var(--ink-dim);margin-bottom:32px}
+  h2{font-size:17px;margin:30px 0 10px;color:var(--goal)}
+  p{margin-bottom:12px;font-size:15px}
+  ul{margin:0 0 12px 20px}
+  li{margin-bottom:7px;font-size:15px}
+  strong{color:var(--ink)}
+  a{color:#38c7e1}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:20px 0}
+  .small{font-size:13px;color:var(--ink-dim);margin-top:40px;border-top:1px solid var(--line);padding-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Privacy Policy — Whoop Diet</h1>
+  <div class="updated">Last updated: 28 June 2026</div>
+
+  <p>Whoop Diet ("the app", "we", "us") is an independent nutrition companion app that helps you manage your diet using your WHOOP data. This policy explains, plainly, what data the app handles and how. The app is not affiliated with, endorsed by, or operated by WHOOP, Inc.</p>
+
+  <div class="box">
+    <p style="margin-bottom:0"><strong>The short version:</strong> Your food log, weight, and settings stay on your own device. Your WHOOP login is never seen by us — only secure access tokens are stored, used solely to fetch your WHOOP data. We don't sell your data, show ads, or share your information with anyone except the services you choose to connect (WHOOP and your selected AI provider).</p>
+  </div>
+
+  <h2>1. Who we are</h2>
+  <p>Whoop Diet is operated by an independent developer (contact below). It is a personal-use application provided to a limited group of users.</p>
+
+  <h2>2. What data the app handles</h2>
+  <p><strong>Data you enter, stored on your device:</strong> your height, age, sex, current and goal weight, target timeframe, daily food and drink entries, water intake, and weigh-ins. This information is stored locally in your browser/device storage and is <strong>not transmitted to or stored by us</strong>.</p>
+
+  <p><strong>WHOOP data:</strong> if you connect WHOOP, the app reads — with your consent — your physiological cycle data (energy burn / strain), recovery score, sleep, and body measurements (height, weight). This data is used only to calculate your calorie budget and is displayed to you. We do not retain a copy of your WHOOP health data on our servers; it is fetched on demand and shown in the app.</p>
+
+  <p><strong>WHOOP access tokens:</strong> to read your WHOOP data, the app uses WHOOP's standard OAuth process. WHOOP issues a per-user access token and refresh token. These tokens are stored, encrypted at rest, in a Cloudflare Workers KV store, keyed to an anonymous device identifier. We never receive or store your WHOOP username or password. You can disconnect at any time, which deletes these tokens.</p>
+
+  <p><strong>Food photos and text you log via AI:</strong> if you use the AI features (photo calorie counting, meal descriptions, the coach, or food grades), the relevant image or text is sent to the AI provider <strong>you choose and configure with your own API key</strong> (Anthropic Claude, OpenAI, or Google Gemini). These requests go directly from your device to that provider, or, if you use the hosted-Claude option, via our Cloudflare Worker. We do not store your meal photos or descriptions.</p>
+
+  <h2>3. What we do <em>not</em> do</h2>
+  <ul>
+    <li>We do not sell your data to anyone.</li>
+    <li>We do not use your data for advertising, and the app shows no ads.</li>
+    <li>We do not share your WHOOP data with third parties, except the AI provider you choose for the features you use.</li>
+    <li>We do not access your WHOOP login credentials.</li>
+    <li>We do not build advertising or marketing profiles from your health data.</li>
+  </ul>
+
+  <h2>4. How your data is protected</h2>
+  <p>All data transmitted between the app, WHOOP, and any AI provider is sent over encrypted HTTPS connections. WHOOP access tokens stored in Cloudflare Workers KV are encrypted at rest. Your personal log data never leaves your device except for the specific AI requests you initiate.</p>
+
+  <h2>5. Third-party services</h2>
+  <p>The app relies on these third parties, each governed by their own privacy policies:</p>
+  <ul>
+    <li><strong>WHOOP</strong> — source of your fitness data, accessed via the WHOOP API with your consent. See WHOOP's privacy policy at whoop.com.</li>
+    <li><strong>Your chosen AI provider</strong> — Anthropic, OpenAI, or Google, used only if you enable AI features with your own API key. Requests are subject to that provider's privacy and data-use terms.</li>
+    <li><strong>Cloudflare</strong> — hosts the backend service that stores WHOOP tokens and proxies requests.</li>
+    <li><strong>GitHub Pages</strong> — hosts the app's static files.</li>
+  </ul>
+
+  <h2>6. Data retention and your control</h2>
+  <ul>
+    <li><strong>On-device data</strong> (food log, weight, settings) remains until you clear your browser/app storage or reset the app.</li>
+    <li><strong>WHOOP tokens</strong> are deleted when you tap "disconnect" in the app, or when they expire and are not renewed.</li>
+    <li>You can revoke the app's access to your WHOOP account at any time from your WHOOP account settings.</li>
+  </ul>
+
+  <h2>7. Children</h2>
+  <p>The app is not intended for, and should not be used by, anyone under the age required to hold a WHOOP membership in their jurisdiction.</p>
+
+  <h2>8. Changes to this policy</h2>
+  <p>If this policy changes, the "last updated" date above will change. Material changes will be reflected here before they take effect.</p>
+
+  <h2>9. Contact</h2>
+  <p>Questions about this policy or your data can be sent to:<br>
+  <strong>aliffinance97@gmail.com</strong></p>
+
+  <div class="small">
+    Whoop Diet is an independent application and is not produced, endorsed, or supported by WHOOP, Inc. "WHOOP" is a trademark of Whoop, Inc.
+  </div>
+</div>
+</body>
+</html>
