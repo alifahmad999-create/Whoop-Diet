@@ -741,11 +741,13 @@ async function aiVision(base64,media,prompt,maxTok=1000){
     return (await r.json()).choices[0].message.content;
   }
   if(p==='gemini'){
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${curKey()}`,
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${curKey()}`,
       {method:'POST',headers:{'Content-Type':'application/json'},
        body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:media,data:base64}}]}]})});
-    if(!r.ok) throw new Error('Gemini '+r.status);
-    return (await r.json()).candidates[0].content.parts.map(p=>p.text||'').join('');
+    if(!r.ok){ let m=''; try{ m=(await r.json()).error?.message||''; }catch(_){} throw new Error('Gemini '+r.status+(m?': '+m.slice(0,80):'')); }
+    const gj=await r.json();
+    if(!gj.candidates||!gj.candidates[0]) throw new Error('Gemini: no response (check key/billing)');
+    return gj.candidates[0].content.parts.map(p=>p.text||'').join('');
   }
   // claude (via worker, or direct inside claude.ai)
   const url = WORKER_BASE ? WORKER_BASE+'/ai/messages' : 'https://api.anthropic.com/v1/messages';
@@ -769,11 +771,13 @@ async function aiText(prompt,maxTok=200){
     return (await r.json()).choices[0].message.content;
   }
   if(p==='gemini'){
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${curKey()}`,
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${curKey()}`,
       {method:'POST',headers:{'Content-Type':'application/json'},
        body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-    if(!r.ok) throw new Error('Gemini '+r.status);
-    return (await r.json()).candidates[0].content.parts.map(p=>p.text||'').join('');
+    if(!r.ok){ let m=''; try{ m=(await r.json()).error?.message||''; }catch(_){} throw new Error('Gemini '+r.status+(m?': '+m.slice(0,80):'')); }
+    const gj=await r.json();
+    if(!gj.candidates||!gj.candidates[0]) throw new Error('Gemini: no response (check key/billing)');
+    return gj.candidates[0].content.parts.map(p=>p.text||'').join('');
   }
   const url = WORKER_BASE ? WORKER_BASE+'/ai/messages' : 'https://api.anthropic.com/v1/messages';
   const headers={'Content-Type':'application/json'};
@@ -1273,7 +1277,7 @@ $('describeGo').onclick=async()=>{
     const r=await aiEstimateText(desc);
     showEstimate({dish:r.dish||desc,kcal:r.kcal,protein_g:r.protein_g,carb_g:r.carb_g,fat_g:r.fat_g,fiber_g:r.fiber_g,
       assumptions:r.assumptions,confidence:r.confidence,source:'describe'});
-  }catch(e){ estError('Couldn\'t estimate that — try adding size and sugar level, e.g. "medium, 50% sugar".'); }
+  }catch(e){ estError('Couldn\'t estimate that. ('+(e.message||e)+') Try adding size and sugar level, e.g. "medium, 50% sugar".'); }
 };
 
 /* BARCODE scanner */
