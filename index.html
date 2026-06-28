@@ -674,7 +674,7 @@ function undoWater(){
    Inside Claude.ai (no key set), we fall back to the auto-injected Anthropic endpoint
    so you can test live without a key.
 */
-const WORKER_BASE=null; // e.g. 'https://whoop-diet.xxx.workers.dev' — set for deployed build
+const WORKER_BASE= "https://whoop-diet.alif-ahmad.workers.dev"; // e.g. 'https://whoop-diet.xxx.workers.dev' — set for deployed build
 function aiReady(){
   if(S.aiProvider==='claude') return !!S.aiKey || !WORKER_BASE; // testable in claude.ai
   return !!S.aiKey;
