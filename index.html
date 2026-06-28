@@ -1240,20 +1240,38 @@ $('closeSearch').onclick=closeSheets;
 async function runSearch(){
   const term=$('searchInput').value.trim(); if(!term) return;
   $('searchResults').innerHTML='<div class="spinner"></div>';
+  let res=[];
   try{
-    const res=await offSearch(term);
-    if(!res.length){ $('searchResults').innerHTML=`<div class="smuted">No match in the database. Try the "Describe it" option — AI can estimate it instead.</div>`; return; }
-    $('searchResults').innerHTML=res.map((r,i)=>`
-      <div class="sresult" data-i="${i}">
-        <div class="sr-info"><div class="sr-name">${r.dish}</div>${r.brand?`<div class="sr-brand">${r.brand}</div>`:''}</div>
-        <div class="sr-kcal">${r.kcal}<small>${r.basis}</small></div>
-      </div>`).join('');
-    _searchRes=res;
-    $('searchResults').querySelectorAll('.sresult').forEach(el=>el.onclick=()=>{
-      const r=_searchRes[+el.dataset.i];
-      closeSheets(); showEstimate({...r,source:'search'});
-    });
-  }catch(e){ $('searchResults').innerHTML=`<div class="smuted">Couldn't reach the food database. Check your connection or try "Describe it".</div>`; }
+    res=await offSearch(term);
+  }catch(e){ res=[]; }
+  // Database empty or down → fall back to AI estimate (the OFF search endpoint is often unreliable)
+  if(!res.length){
+    if(aiReady()){
+      $('searchResults').innerHTML='<div class="spinner"></div><div class="smuted" style="margin-top:8px">Database had nothing — asking AI…</div>';
+      try{
+        const r=await aiEstimateText(term);
+        closeSheets();
+        showEstimate({dish:r.dish||term,kcal:r.kcal,protein_g:r.protein_g,carb_g:r.carb_g,fat_g:r.fat_g,fiber_g:r.fiber_g,
+          assumptions:r.assumptions,confidence:r.confidence,source:'search'});
+        return;
+      }catch(err){
+        $('searchResults').innerHTML=`<div class="smuted">Couldn't estimate "${term}". (${err.message||err}) Try the Describe option with more detail.</div>`;
+        return;
+      }
+    }
+    $('searchResults').innerHTML=`<div class="smuted">No match found. Add an AI key in settings (gear icon) so AI can estimate foods the database doesn't have.</div>`;
+    return;
+  }
+  $('searchResults').innerHTML=res.map((r,i)=>`
+    <div class="sresult" data-i="${i}">
+      <div class="sr-info"><div class="sr-name">${r.dish}</div>${r.brand?`<div class="sr-brand">${r.brand}</div>`:''}</div>
+      <div class="sr-kcal">${r.kcal}<small>${r.basis}</small></div>
+    </div>`).join('');
+  _searchRes=res;
+  $('searchResults').querySelectorAll('.sresult').forEach(el=>el.onclick=()=>{
+    const r=_searchRes[+el.dataset.i];
+    closeSheets(); showEstimate({...r,source:'search'});
+  });
 }
 let _searchRes=[];
 $('searchGo').onclick=runSearch;
