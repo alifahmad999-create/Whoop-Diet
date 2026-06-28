@@ -323,8 +323,18 @@
     font-size:14px;padding:12px;border-radius:12px;cursor:pointer;margin-top:10px}
   .seg{display:flex;gap:8px;margin-bottom:14px}
   .seg button{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--ink-dim);
-    padding:9px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer}
-  .seg button.act{background:var(--panel2);border-color:var(--goal);color:var(--ink)}
+    padding:9px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+  .seg button.act{background:var(--panel2);border-color:var(--goal);color:var(--ink);
+    box-shadow:0 0 0 1px var(--goal),0 4px 14px rgba(62,225,154,.12)}
+  .key-wrap{position:relative;display:flex;align-items:center}
+  .key-wrap input{padding-right:62px}
+  .key-eye{position:absolute;right:8px;background:var(--panel2);border:1px solid var(--line);
+    color:var(--ink-dim);font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer}
+  .key-saved{display:none;background:rgba(62,225,154,.14);color:var(--goal);font-size:10px;
+    font-weight:800;padding:2px 7px;border-radius:6px;margin-left:6px;letter-spacing:.03em;vertical-align:middle}
+  .sheet-foot{text-align:center;margin-top:16px}
+  .sheet-foot a{color:var(--ink-faint);font-size:12px;text-decoration:none;opacity:.7}
+  .sheet-foot a:active{opacity:1}
   .pace{font-size:12.5px;line-height:1.5;color:var(--ink-dim);background:var(--bg);
     border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:16px}
   .pace.warn{border-color:#5a3a28;color:#f0a87b}
@@ -333,6 +343,14 @@
     background:var(--panel2);border:1px solid var(--line);color:var(--ink);font-size:13px;
     padding:11px 18px;border-radius:30px;opacity:0;transition:.3s;z-index:60;pointer-events:none}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .connecting{position:fixed;inset:0;background:rgba(8,13,20,.82);backdrop-filter:blur(6px);
+    display:none;align-items:center;justify-content:center;z-index:80}
+  .connecting.on{display:flex}
+  .connecting-card{text-align:center}
+  .conn-spinner{width:46px;height:46px;margin:0 auto 16px;border-radius:50%;
+    border:3px solid rgba(62,225,154,.2);border-top-color:var(--goal);animation:spin .8s linear infinite}
+  .conn-text{color:var(--ink);font-size:15px;font-weight:600}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -615,13 +633,37 @@
       <button data-ai="gemini">Gemini</button>
     </div>
     <div class="field">
-      <label id="keyLabel">Anthropic API key</label>
-      <input type="password" id="keyIn" placeholder="sk-ant-..." autocomplete="off">
+      <label id="keyLabel">Anthropic API key <span class="key-saved" id="keySaved">saved ✓</span></label>
+      <div class="key-wrap">
+        <input type="password" id="keyIn" placeholder="sk-ant-..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button type="button" class="key-eye" id="keyEye" aria-label="Show or hide key">show</button>
+      </div>
     </div>
     <div class="est-note" id="aiHint">⚠︎ <span></span></div>
     <button class="save" id="saveAI">Save key</button>
     <button class="ghost" id="clearAI" style="margin-top:10px">Remove key</button>
-    <button class="ghost" id="closeAI" style="margin-top:10px">Cancel</button>
+    <button class="ghost" id="closeAI" style="margin-top:10px">Close</button>
+    <div class="sheet-foot"><a href="#" id="privacyLink">Privacy policy</a></div>
+  </div>
+
+  <!-- Whoop name modal (replaces browser prompt) -->
+  <div class="sheet" id="nameSheet">
+    <h2>Connect Whoop</h2>
+    <p class="s">Enter your name so your data stays separate from anyone else using this on the same device.</p>
+    <div class="field">
+      <label>Your name</label>
+      <input type="text" id="nameIn" placeholder="e.g. Alif" autocomplete="off" autocapitalize="words">
+    </div>
+    <button class="save" id="nameGo">Continue to Whoop →</button>
+    <button class="ghost" id="nameCancel" style="margin-top:10px">Cancel</button>
+  </div>
+
+  <!-- connecting overlay -->
+  <div class="connecting" id="connecting">
+    <div class="connecting-card">
+      <div class="conn-spinner"></div>
+      <div class="conn-text">Taking you to Whoop…</div>
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -632,7 +674,12 @@ const KEY='leanday.v1';
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
 const save=s=>localStorage.setItem(KEY,JSON.stringify(s));
 let S=Object.assign({sex:'m',height:null,age:null,goal:null,months:null,deficit:500,
-  weights:[],connected:false,meals:[],water:null,grade:null,deviceId:null,aiProvider:'claude',aiKey:''},load());
+  weights:[],connected:false,meals:[],water:null,grade:null,deviceId:null,aiProvider:'claude',aiKey:'',aiKeys:{}},load());
+// migrate single aiKey -> per-provider map (one-time)
+if(!S.aiKeys) S.aiKeys={};
+if(S.aiKey && !S.aiKeys[S.aiProvider]){ S.aiKeys[S.aiProvider]=S.aiKey; save(S); }
+// helper: current provider's key
+function curKey(){ return (S.aiKeys && S.aiKeys[S.aiProvider]) || ''; }
 
 /* keep ~8 days of meals (today's view filters separately; grade needs yesterday) */
 (function pruneMeals(){
@@ -674,10 +721,10 @@ function undoWater(){
    Inside Claude.ai (no key set), we fall back to the auto-injected Anthropic endpoint
    so you can test live without a key.
 */
-const WORKER_BASE= "https://whoop-diet.alif-ahmad.workers.dev"; // e.g. 'https://whoop-diet.xxx.workers.dev' — set for deployed build
+const WORKER_BASE="https://whoop-diet.alif-ahmad999.workers.dev"; // deployed Worker
 function aiReady(){
-  if(S.aiProvider==='claude') return !!S.aiKey || !WORKER_BASE; // testable in claude.ai
-  return !!S.aiKey;
+  if(S.aiProvider==='claude') return !!curKey() || !WORKER_BASE; // testable in claude.ai
+  return !!curKey();
 }
 function parseJSON(t){ return JSON.parse(t.replace(/```json|```/g,'').trim()); }
 
@@ -686,7 +733,7 @@ async function aiVision(base64,media,prompt,maxTok=1000){
   const p=S.aiProvider;
   if(p==='openai'){
     const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.aiKey},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+curKey()},
       body:JSON.stringify({model:'gpt-4o',max_tokens:maxTok,messages:[{role:'user',content:[
         {type:'text',text:prompt},
         {type:'image_url',image_url:{url:`data:${media};base64,${base64}`}}]}]})});
@@ -694,7 +741,7 @@ async function aiVision(base64,media,prompt,maxTok=1000){
     return (await r.json()).choices[0].message.content;
   }
   if(p==='gemini'){
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${S.aiKey}`,
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${curKey()}`,
       {method:'POST',headers:{'Content-Type':'application/json'},
        body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:media,data:base64}}]}]})});
     if(!r.ok) throw new Error('Gemini '+r.status);
@@ -703,7 +750,7 @@ async function aiVision(base64,media,prompt,maxTok=1000){
   // claude (via worker, or direct inside claude.ai)
   const url = WORKER_BASE ? WORKER_BASE+'/ai/messages' : 'https://api.anthropic.com/v1/messages';
   const headers={'Content-Type':'application/json'};
-  if(WORKER_BASE && S.aiKey) headers['x-user-key']=S.aiKey;
+  if(WORKER_BASE && curKey()) headers['x-user-key']=curKey();
   const r=await fetch(url,{method:'POST',headers,body:JSON.stringify({
     model:'claude-sonnet-4-6',max_tokens:maxTok,messages:[{role:'user',content:[
       {type:'image',source:{type:'base64',media_type:media,data:base64}},
@@ -716,13 +763,13 @@ async function aiText(prompt,maxTok=200){
   const p=S.aiProvider;
   if(p==='openai'){
     const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.aiKey},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+curKey()},
       body:JSON.stringify({model:'gpt-4o-mini',max_tokens:maxTok,messages:[{role:'user',content:prompt}]})});
     if(!r.ok) throw new Error('OpenAI '+r.status);
     return (await r.json()).choices[0].message.content;
   }
   if(p==='gemini'){
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${S.aiKey}`,
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${curKey()}`,
       {method:'POST',headers:{'Content-Type':'application/json'},
        body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
     if(!r.ok) throw new Error('Gemini '+r.status);
@@ -730,7 +777,7 @@ async function aiText(prompt,maxTok=200){
   }
   const url = WORKER_BASE ? WORKER_BASE+'/ai/messages' : 'https://api.anthropic.com/v1/messages';
   const headers={'Content-Type':'application/json'};
-  if(WORKER_BASE && S.aiKey) headers['x-user-key']=S.aiKey;
+  if(WORKER_BASE && curKey()) headers['x-user-key']=curKey();
   const r=await fetch(url,{method:'POST',headers,body:JSON.stringify({
     model:'claude-sonnet-4-6',max_tokens:maxTok,messages:[{role:'user',content:prompt}]})});
   if(!r.ok) throw new Error('Claude '+r.status);
@@ -1067,7 +1114,7 @@ function renderPredict(){
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1900);}
 function openSheet(el){$('scrim').classList.add('on');el.classList.add('on');}
-function closeSheets(){$('scrim').classList.remove('on');['weighSheet','setupSheet','foodSheet','aiSheet','methodSheet','searchSheet','describeSheet','scanSheet'].forEach(id=>$(id).classList.remove('on'));if(typeof stopScanner==='function')stopScanner();}
+function closeSheets(){$('scrim').classList.remove('on');['weighSheet','setupSheet','foodSheet','aiSheet','methodSheet','searchSheet','describeSheet','scanSheet','nameSheet'].forEach(id=>$(id).classList.remove('on'));if(typeof stopScanner==='function')stopScanner();}
 $('scrim').onclick=closeSheets;
 
 /* ---------- water logging ---------- */
@@ -1505,11 +1552,11 @@ $('connBtn').onclick=async()=>{
     S.connected=false; _todayCache=null; save(S); updateConn(); buildPlan(); toast('Whoop disconnected'); return;
   }
   if(WORKER_BASE){
-    // real OAuth: ask for a display name (so you can tell whose data is whose), then redirect
-    const name=prompt('Your name (so your data stays separate):','')||'';
-    const uid=deviceId();
-    location.href=`${WORKER_BASE}/auth/start?uid=${encodeURIComponent(uid)}&name=${encodeURIComponent(name)}`;
-    return; // returns to the app via redirect; #whoop=connected handled on load
+    // real OAuth: themed name modal, then redirect with a connecting overlay
+    $('nameIn').value='';
+    openSheet($('nameSheet'));
+    setTimeout(()=>$('nameIn').focus(),200);
+    return;
   }
   // mock fallback (inside Claude.ai)
   toast('Connecting to Whoop…');
@@ -1534,9 +1581,14 @@ const AI_META={
 };
 function applyAIMeta(){
   const m=AI_META[S.aiProvider];
-  $('keyLabel').textContent=m.label; $('keyIn').placeholder=m.ph;
+  $('keyLabel').childNodes[0].nodeValue=m.label+' ';
+  $('keyIn').placeholder=m.ph;
   $('aiHint').querySelector('span').textContent=m.hint;
   document.querySelectorAll('#aiSeg button').forEach(b=>b.classList.toggle('act',b.dataset.ai===S.aiProvider));
+  // show saved badge if this provider already has a key stored
+  const saved=!!curKey();
+  $('keySaved').style.display=saved?'inline-block':'none';
+  $('saveAI').textContent=saved?'Update key':'Save key';
 }
 function updateAIPill(){
   const p=$('aiPill');
@@ -1548,19 +1600,50 @@ function updateAIPill(){
   if(pb) pb.textContent = {claude:'Claude AI',openai:'ChatGPT',gemini:'Gemini'}[S.aiProvider];
 }
 $('gearBtn').onclick=$('aiPill').onclick=()=>{
-  $('keyIn').value=S.aiKey||''; applyAIMeta(); openSheet($('aiSheet'));
+  $('keyIn').value=curKey(); $('keyIn').type='password'; $('keyEye').textContent='show';
+  applyAIMeta(); openSheet($('aiSheet'));
 };
 document.querySelectorAll('#aiSeg button').forEach(b=>b.onclick=()=>{
-  S.aiProvider=b.dataset.ai; $('keyIn').value=''; applyAIMeta();
+  // save the current field into the current provider before switching, so nothing is lost
+  const typed=$('keyIn').value.trim();
+  if(typed) { S.aiKeys[S.aiProvider]=typed; save(S); }
+  S.aiProvider=b.dataset.ai; save(S);
+  $('keyIn').value=curKey(); $('keyIn').type='password'; $('keyEye').textContent='show';
+  applyAIMeta(); updateAIPill();
 });
+$('keyEye').onclick=()=>{
+  const i=$('keyIn');
+  if(i.type==='password'){ i.type='text'; $('keyEye').textContent='hide'; }
+  else { i.type='password'; $('keyEye').textContent='show'; }
+};
 $('saveAI').onclick=()=>{
   const k=$('keyIn').value.trim();
   if(S.aiProvider!=='claude' && !k){ toast('Paste your '+AI_META[S.aiProvider].label.split(' ')[0]+' key'); return; }
-  S.aiKey=k; save(S); closeSheets(); updateAIPill(); _coachKey=null; buildPlan();
-  toast(k?'AI key saved on this device':'Provider set');
+  S.aiKeys[S.aiProvider]=k; S.aiKey=k; save(S);
+  updateAIPill(); applyAIMeta(); _coachKey=null; buildPlan();
+  toast(k?'✓ '+({claude:'Claude',openai:'OpenAI',gemini:'Gemini'}[S.aiProvider])+' key saved on this device':'Provider set');
+  closeSheets();
 };
-$('clearAI').onclick=()=>{ S.aiKey=''; save(S); closeSheets(); updateAIPill(); toast('Key removed'); };
+$('clearAI').onclick=()=>{
+  delete S.aiKeys[S.aiProvider]; S.aiKey=''; save(S);
+  $('keyIn').value=''; updateAIPill(); applyAIMeta(); toast('Key removed');
+};
 $('closeAI').onclick=closeSheets;
+const _pl=document.getElementById('privacyLink');
+if(_pl) _pl.onclick=(e)=>{ e.preventDefault(); window.open('https://alifahmad999-create.github.io/Whoop-Diet/privacy.html','_blank'); };
+
+/* Whoop name modal */
+$('nameGo').onclick=()=>{
+  const name=$('nameIn').value.trim();
+  if(!name){ toast('Enter your name first'); return; }
+  closeSheets();
+  $('connecting').classList.add('on');
+  const uid=deviceId();
+  setTimeout(()=>{
+    location.href=`${WORKER_BASE}/auth/start?uid=${encodeURIComponent(uid)}&name=${encodeURIComponent(name)}`;
+  },350);
+};
+$('nameCancel').onclick=closeSheets;
 
 /* ---------- boot ---------- */
 $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
@@ -1583,13 +1666,16 @@ async function handleWhoopReturn(){
 
 (async()=>{
   await handleWhoopReturn();
-  // re-verify connection with the Worker on load (tokens live server-side)
-  if(WORKER_BASE && S.connected){
-    try{ const r=await fetch(`${WORKER_BASE}/status?uid=${encodeURIComponent(deviceId())}`);
-      const d=await r.json(); if(!d.connected){ S.connected=false; save(S); } }catch(e){}
-  }
+  // render immediately — don't block first paint on a network round-trip
   updateConn(); updateAIPill();
   if(!S.height){ openSetup(); } else { buildPlan(); }
+  // re-verify Whoop connection with the Worker in the background (tokens live server-side)
+  if(WORKER_BASE && S.connected){
+    fetch(`${WORKER_BASE}/status?uid=${encodeURIComponent(deviceId())}`)
+      .then(r=>r.json())
+      .then(d=>{ if(!d.connected){ S.connected=false; save(S); updateConn(); buildPlan(); } })
+      .catch(()=>{});
+  }
 })();
 </script>
 </body>
