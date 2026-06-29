@@ -1494,14 +1494,18 @@ async function refreshCoach(plan){
     weight_trend_kg_per_week:lossRate(), meals_logged:todayMeals().length,
     floor_active:plan.flooredHit
   };
-  const key=JSON.stringify(ctx);
-  if(key===_coachKey) return;       // avoid duplicate calls for same state
-  _coachKey=key;
+  // coarse cache key (buckets) so the coach isn't re-called on every tiny change; persisted to localStorage
+  const ckey=[Math.round((plan.intake-e.kcal)/150), Math.round(e.p/25), todayMeals().length].join('|');
+  const cc=loadCoachCache();
+  if(cc.k===ckey && cc.line){ card.classList.remove('load'); txt.textContent=cc.line; _coachKey=ckey; return; }
+  if(ckey===_coachKey) return;       // avoid duplicate calls for same state
+  _coachKey=ckey;
   card.classList.add('load'); txt.textContent='Thinking through your day';
   try{
     const line=await aiCoach(ctx);
     card.classList.remove('load');
-    txt.textContent = line || 'Coach is offline right now — your targets above still hold.';
+    if(line){ txt.textContent=line; saveCoachCache({k:ckey,line}); }
+    else txt.textContent='Coach is offline right now — your targets above still hold.';
   }catch(e){
     const msg=(e.message||String(e));
     _coachKey=null; // allow retry
@@ -1515,6 +1519,9 @@ async function refreshCoach(plan){
     }
   }
 }
+function _today(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function loadCoachCache(){ try{ const c=JSON.parse(localStorage.getItem('whoopdiet.coachCache')||'{}'); return c.day===_today()?c:{}; }catch(e){ return {}; } }
+function saveCoachCache(c){ try{ c.day=_today(); localStorage.setItem('whoopdiet.coachCache', JSON.stringify(c)); }catch(e){} }
 
 /* ---------- "enough for / probably not" meal suggestions ---------- */
 let _enoughKey=null;
@@ -1552,21 +1559,28 @@ async function renderEnough(intake, eatenKcal){
   if(!aiReady()){ card.style.display='none'; return; }
   card.style.display='block';
   document.getElementById('enoughKcal').textContent=remaining;
-  // cache by 200-kcal bucket so small logging changes don't trigger new calls
+  const yes=document.getElementById('enoughYes'), no=document.getElementById('enoughNo');
+  const fmt=m=>{ const k=m.kcal?`<span class="enough-kcal">(≈${m.kcal})</span>`:''; return `${m.emoji||'·'} ${m.name} ${k}`; };
+  const paint=(s)=>{
+    yes.classList.remove('dim'); no.classList.remove('dim');
+    yes.innerHTML=(s.yes||[]).map(fmt).join('<br>');
+    no.innerHTML=(s.no||[]).map(fmt).join('<br>');
+  };
+  // cache by 200-kcal bucket, persisted in localStorage so it survives reloads (and saves API calls / avoids 429s)
   const bucket=Math.round(remaining/200);
+  const cache=loadSuggCache();
+  if(cache[bucket]){ paint(cache[bucket]); _enoughKey=bucket; return; }   // instant from cache, no API call
   if(_enoughKey===bucket) return;
   _enoughKey=bucket;
-  const yes=document.getElementById('enoughYes'), no=document.getElementById('enoughNo');
   yes.classList.add('dim'); no.classList.add('dim');
   yes.textContent='…'; no.textContent='';
   try{
     const s=await aiMealSuggestions(remaining);
-    yes.classList.remove('dim'); no.classList.remove('dim');
-    const fmt=m=>{ const k=m.kcal?`<span class="enough-kcal">(≈${m.kcal})</span>`:''; return `${m.emoji||'·'} ${m.name} ${k}`; };
     const yArr=s.yes||s.Yes||[], nArr=s.no||s.No||[];
     if(!yArr.length && !nArr.length) throw new Error('empty');
-    yes.innerHTML=yArr.map(fmt).join('<br>');
-    no.innerHTML=nArr.map(fmt).join('<br>');
+    const clean={yes:yArr,no:nArr};
+    paint(clean);
+    cache[bucket]=clean; saveSuggCache(cache);   // persist for next time
   }catch(e){
     _enoughKey=null; // allow retry next render
     yes.classList.remove('dim'); no.classList.remove('dim');
@@ -1581,6 +1595,9 @@ async function renderEnough(intake, eatenKcal){
     if(r) r.onclick=(ev)=>{ ev.stopPropagation(); _enoughKey=null; renderEnough(intake, eatenKcal); };
   }
 }
+/* persistent suggestion cache (keyed by 200-kcal bucket), resets daily */
+function loadSuggCache(){ try{ const c=JSON.parse(localStorage.getItem('whoopdiet.suggCache')||'{}'); return c._day===_today()?c:{_day:_today()}; }catch(e){ return {_day:_today()}; } }
+function saveSuggCache(c){ try{ c._day=_today(); localStorage.setItem('whoopdiet.suggCache', JSON.stringify(c)); }catch(e){} }
 
 /* ---------- yesterday food grade (cached once per day) ---------- */
 const GRADE_COLORS={A:'#3ee19a','A-':'#3ee19a','B+':'#8fd14f',B:'#cdd14f','B-':'#e0b84f',
