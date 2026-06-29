@@ -137,6 +137,7 @@
   .enough-lab.no{color:var(--ink-faint)}
   .enough-list{font-size:12.5px;line-height:1.7;color:var(--ink)}
   .enough-list.dim{color:var(--ink-faint)}
+  .enough-kcal{font-size:10.5px;color:var(--ink-faint);font-weight:600;white-space:nowrap}
 
   /* water card (interactive) */
   .water{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
@@ -1522,8 +1523,8 @@ async function renderEnough(intake, eatenKcal){
   if(typeof DEMO_FALLBACK!=='undefined' && DEMO_FALLBACK && !aiReady()){
     card.style.display='block';
     document.getElementById('enoughKcal').textContent=remaining;
-    document.getElementById('enoughYes').innerHTML='🍗 Chicken rice<br>🥗 Poke bowl<br>🥪 Subway 6-inch';
-    document.getElementById('enoughNo').innerHTML='🍔 Big Mac large meal<br>🍕 Large pizza';
+    document.getElementById('enoughYes').innerHTML='🍗 Chicken rice <span class="enough-kcal">(≈600)</span><br>🥗 Poke bowl <span class="enough-kcal">(≈550)</span><br>🥪 Subway 6-inch <span class="enough-kcal">(≈400)</span>';
+    document.getElementById('enoughNo').innerHTML='🍔 Big Mac large meal <span class="enough-kcal">(≈1100)</span><br>🍕 Large pizza <span class="enough-kcal">(≈2000)</span>';
     return;
   }
   if(!aiReady()){ card.style.display='none'; return; }
@@ -1539,8 +1540,9 @@ async function renderEnough(intake, eatenKcal){
   try{
     const s=await aiMealSuggestions(remaining);
     yes.classList.remove('dim'); no.classList.remove('dim');
-    yes.innerHTML=(s.yes||[]).map(m=>`${m.emoji||'·'} ${m.name}`).join('<br>');
-    no.innerHTML=(s.no||[]).map(m=>`${m.emoji||'·'} ${m.name}`).join('<br>');
+    const fmt=m=>{ const k=m.kcal?`<span class="enough-kcal">(≈${m.kcal})</span>`:''; return `${m.emoji||'·'} ${m.name} ${k}`; };
+    yes.innerHTML=(s.yes||[]).map(fmt).join('<br>');
+    no.innerHTML=(s.no||[]).map(fmt).join('<br>');
   }catch(e){ _enoughKey=null; card.style.display='none'; }
 }
 
