@@ -138,6 +138,7 @@
   .enough-list{font-size:12.5px;line-height:1.7;color:var(--ink)}
   .enough-list.dim{color:var(--ink-faint)}
   .enough-kcal{font-size:10.5px;color:var(--ink-faint);font-weight:600;white-space:nowrap}
+  .enough-retry{color:var(--goal);font-size:12px;cursor:pointer}
 
   /* water card (interactive) */
   .water{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
@@ -805,7 +806,16 @@ function aiReady(){
   if(S.aiProvider==='claude') return !!curKey() || !WORKER_BASE; // testable in claude.ai
   return !!curKey();
 }
-function parseJSON(t){ return JSON.parse(t.replace(/```json|```/g,'').trim()); }
+function parseJSON(t){
+  let s=t.replace(/```json|```/g,'').trim();
+  // extract the outermost JSON object/array if there's surrounding prose
+  const a=s.indexOf('{'), b=s.lastIndexOf('}');
+  const c=s.indexOf('['), d=s.lastIndexOf(']');
+  if(a>=0 && b>a && (c<0 || a<c)) s=s.slice(a,b+1);
+  else if(c>=0 && d>c) s=s.slice(c,d+1);
+  s=s.replace(/,\s*([}\]])/g,'$1'); // strip trailing commas
+  return JSON.parse(s);
+}
 
 /* visionPrompt + textPrompt return provider-normalised plain text */
 async function aiVision(base64,media,prompt,maxTok=1000){
@@ -1498,10 +1508,11 @@ async function refreshCoach(plan){
 /* ---------- "enough for / probably not" meal suggestions ---------- */
 let _enoughKey=null;
 async function aiMealSuggestions(remaining){
-  const prompt=`A person doing fat loss has ${remaining} kcal left to eat today. Suggest real, common meals (lean toward Malaysian and widely-available options) that fit. Respond with ONLY valid JSON, no prose:
-{"yes":[{"emoji":"🍗","name":"meal","kcal":0}],"no":[{"emoji":"🍔","name":"meal","kcal":0}]}
-"yes" = 3 meals at or under ${remaining} kcal. "no" = 2 popular meals that would blow the budget.`;
-  return parseJSON(await aiText(prompt,400));
+  const prompt=`A person doing fat loss has ${remaining} kcal left to eat today. Suggest real, common meals (lean toward Malaysian and widely-available options).
+Return ONLY a JSON object, nothing before or after it, no markdown fences. Use this exact shape:
+{"yes":[{"emoji":"🍗","name":"Grilled chicken rice","kcal":600},{"emoji":"🥗","name":"Poke bowl","kcal":550},{"emoji":"🍜","name":"Soto ayam","kcal":450}],"no":[{"emoji":"🍔","name":"Ramly burger special","kcal":900},{"emoji":"🍕","name":"Large pizza","kcal":2000}]}
+Rules: "yes" = exactly 3 meals each at or under ${remaining} kcal. "no" = exactly 2 popular meals that would overshoot. "kcal" is an integer estimate for one typical serving. Keep names under 6 words.`;
+  return parseJSON(await aiText(prompt,500));
 }
 let _enoughOpen=false;
 function wireEnoughToggle(){
@@ -1541,9 +1552,18 @@ async function renderEnough(intake, eatenKcal){
     const s=await aiMealSuggestions(remaining);
     yes.classList.remove('dim'); no.classList.remove('dim');
     const fmt=m=>{ const k=m.kcal?`<span class="enough-kcal">(≈${m.kcal})</span>`:''; return `${m.emoji||'·'} ${m.name} ${k}`; };
-    yes.innerHTML=(s.yes||[]).map(fmt).join('<br>');
-    no.innerHTML=(s.no||[]).map(fmt).join('<br>');
-  }catch(e){ _enoughKey=null; card.style.display='none'; }
+    const yArr=s.yes||s.Yes||[], nArr=s.no||s.No||[];
+    if(!yArr.length && !nArr.length) throw new Error('empty');
+    yes.innerHTML=yArr.map(fmt).join('<br>');
+    no.innerHTML=nArr.map(fmt).join('<br>');
+  }catch(e){
+    _enoughKey=null; // allow retry next render
+    yes.classList.remove('dim'); no.classList.remove('dim');
+    yes.innerHTML='<span class="enough-retry">↻ Tap to load suggestions</span>';
+    no.innerHTML='';
+    const r=yes.querySelector('.enough-retry');
+    if(r) r.onclick=(ev)=>{ ev.stopPropagation(); _enoughKey=null; renderEnough(intake, eatenKcal); };
+  }
 }
 
 /* ---------- yesterday food grade (cached once per day) ---------- */
