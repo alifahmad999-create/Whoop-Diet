@@ -236,6 +236,16 @@
   .est-items b{color:var(--ink-dim);font-weight:600;display:block;margin-bottom:5px;
     text-transform:uppercase;font-size:10px;letter-spacing:.06em}
   .food-actions{margin-top:4px}
+  .adjust-btn{width:100%;margin-top:12px;background:none;border:1px dashed var(--line);
+    color:var(--ink-dim);font-size:12.5px;font-weight:600;padding:10px;border-radius:11px;cursor:pointer}
+  .adjust-btn:active{border-color:var(--goal);color:var(--goal)}
+  .adj-field{margin-bottom:11px}
+  .adj-field label{font-size:11px;color:var(--ink-dim);display:block;margin-bottom:5px;font-weight:600}
+  .adj-field input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;
+    padding:11px 13px;color:var(--ink);font-size:15px;font-weight:600}
+  .adj-field input:focus{outline:none;border-color:var(--goal)}
+  .adj-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .adj-hint{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:6px}
   .est-note{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:10px;
     display:flex;gap:6px;align-items:flex-start}
   .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--goal);
@@ -244,6 +254,15 @@
 
   /* add-food method chooser */
   .methods{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
+  .recent-wrap{margin-bottom:16px}
+  .recent-lab{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:700;margin-bottom:9px}
+  .recent-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .recent-chip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:11px;
+    padding:8px 12px;cursor:pointer;text-align:left;max-width:100%}
+  .recent-chip:active{border-color:var(--goal)}
+  .rc-name{font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+  .rc-kcal{font-size:10.5px;color:var(--goal);font-weight:700}
   .method{display:flex;align-items:center;gap:13px;background:var(--bg);border:1px solid var(--line);
     border-radius:13px;padding:13px 14px;cursor:pointer;text-align:left;color:var(--ink);width:100%}
   .method:active{transform:scale(.99);border-color:var(--goal)}
@@ -608,7 +627,7 @@
   </nav>
 
   <footer class="credit">
-    Powered by <span id="poweredBy">Claude AI</span>
+    Powered by <span id="poweredBy">Gemini</span>
   </footer>
 
   <!-- weigh-in sheet -->
@@ -651,7 +670,7 @@
   <!-- food estimate sheet -->
   <div class="sheet" id="foodSheet">
     <h2 id="foodTitle">Estimating…</h2>
-    <p class="s" id="foodSub">Claude is reading your plate.</p>
+    <p class="s" id="foodSub">Reading your plate.</p>
     <div id="foodBody"></div>
     <div class="food-actions" id="foodActions" style="display:none">
       <button class="save" id="logFood">Log this meal</button>
@@ -664,6 +683,7 @@
   <div class="sheet" id="methodSheet">
     <h2>Add food</h2>
     <p class="s">Pick how you want to log it. AI fills in anything the database doesn't have.</p>
+    <div id="recentMeals" class="recent-wrap"></div>
     <div class="methods">
       <button class="method" data-m="photo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.5"/></svg>
@@ -703,23 +723,18 @@
     <button class="ghost" id="closeScan" style="margin-top:10px">Cancel</button>
   </div>
 
-  <!-- AI settings sheet -->
+  <!-- AI settings sheet (Gemini only) -->
   <div class="sheet" id="aiSheet">
-    <h2>AI provider</h2>
-    <p class="s">The photo calorie counter and daily coach run on AI. Bring your own key so it's your usage, your cost — nothing routes through the app owner.</p>
-    <div class="seg" id="aiSeg">
-      <button data-ai="claude" class="act">Claude</button>
-      <button data-ai="openai">OpenAI</button>
-      <button data-ai="gemini">Gemini</button>
-    </div>
+    <h2>AI setup</h2>
+    <p class="s">The photo calorie counter and daily coach run on Google's Gemini AI. It's free — bring your own key so it's your usage, nothing routes through the app owner.</p>
     <div class="field">
-      <label id="keyLabel">Anthropic API key <span class="key-saved" id="keySaved">saved ✓</span></label>
+      <label id="keyLabel">Google AI Studio key <span class="key-saved" id="keySaved">saved ✓</span></label>
       <div class="key-wrap">
-        <input type="password" id="keyIn" placeholder="sk-ant-..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <input type="password" id="keyIn" placeholder="AIza..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         <button type="button" class="key-eye" id="keyEye" aria-label="Show or hide key">show</button>
       </div>
     </div>
-    <div class="est-note" id="aiHint">⚠︎ <span></span></div>
+    <div class="est-note"><span>Free key from <b>aistudio.google.com/apikey</b> — sign in with Google, tap “Create API key”, copy and paste it here. No billing needed.</span></div>
     <button class="save" id="saveAI">Save key</button>
     <button class="ghost" id="clearAI" style="margin-top:10px">Remove key</button>
     <button class="ghost" id="closeAI" style="margin-top:10px">Close</button>
@@ -754,12 +769,10 @@ const KEY='leanday.v1';
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
 const save=s=>localStorage.setItem(KEY,JSON.stringify(s));
 let S=Object.assign({sex:'m',height:null,age:null,goal:null,months:null,deficit:500,
-  weights:[],connected:false,meals:[],water:null,grade:null,deviceId:null,aiProvider:'claude',aiKey:'',aiKeys:{}},load());
-// migrate single aiKey -> per-provider map (one-time)
-if(!S.aiKeys) S.aiKeys={};
-if(S.aiKey && !S.aiKeys[S.aiProvider]){ S.aiKeys[S.aiProvider]=S.aiKey; save(S); }
-// helper: current provider's key
-function curKey(){ return (S.aiKeys && S.aiKeys[S.aiProvider]) || ''; }
+  weights:[],connected:false,meals:[],water:null,grade:null,deviceId:null,aiKey:''},load());
+// migrate any old per-provider Gemini key to the single key
+if(!S.aiKey && S.aiKeys && S.aiKeys.gemini){ S.aiKey=S.aiKeys.gemini; delete S.aiKeys; save(S); }
+function curKey(){ return S.aiKey||''; }
 
 /* keep ~8 days of meals (today's view filters separately; grade needs yesterday) */
 (function pruneMeals(){
@@ -794,18 +807,13 @@ function undoWater(){
   const last=w.log.pop(); w.ml=Math.max(0,w.ml-last); save(S); return true;
 }
 
-/* ---------- AI layer (bring-your-own-key, multi-provider) ----------
-   Each buyer picks a provider and pastes their own key (stored on-device).
-   - Claude: browser can't call api.anthropic.com (CORS), so route via the Worker proxy.
-   - OpenAI & Gemini: callable directly from the browser.
-   Inside Claude.ai (no key set), we fall back to the auto-injected Anthropic endpoint
+/* ---------- AI layer (Gemini, bring-your-own-key) ----------
+   Each user pastes their own free Google AI Studio key (stored on-device).
+   Gemini is callable directly from the browser (no proxy needed).
    so you can test live without a key.
 */
 const WORKER_BASE="https://whoop-diet.alif-ahmad999.workers.dev"; // deployed Worker
-function aiReady(){
-  if(S.aiProvider==='claude') return !!curKey() || !WORKER_BASE; // testable in claude.ai
-  return !!curKey();
-}
+function aiReady(){ return !!curKey(); }
 function parseJSON(t){
   let s=t.replace(/```json|```/g,'').trim();
   // extract the outermost JSON object/array if there's surrounding prose
@@ -817,65 +825,24 @@ function parseJSON(t){
   return JSON.parse(s);
 }
 
-/* visionPrompt + textPrompt return provider-normalised plain text */
+/* Gemini-only AI layer. Each user brings their own free Google AI Studio key (stored on-device). */
 async function aiVision(base64,media,prompt,maxTok=1000){
-  const p=S.aiProvider;
-  if(p==='openai'){
-    const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+curKey()},
-      body:JSON.stringify({model:'gpt-4o',max_tokens:maxTok,messages:[{role:'user',content:[
-        {type:'text',text:prompt},
-        {type:'image_url',image_url:{url:`data:${media};base64,${base64}`}}]}]})});
-    if(!r.ok) throw new Error('OpenAI '+r.status);
-    return (await r.json()).choices[0].message.content;
-  }
-  if(p==='gemini'){
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${curKey()}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-       body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:media,data:base64}}]}]})});
-    if(!r.ok){ let m=''; try{ m=(await r.json()).error?.message||''; }catch(_){} throw new Error('Gemini '+r.status+(m?': '+m.slice(0,80):'')); }
-    const gj=await r.json();
-    if(!gj.candidates||!gj.candidates[0]) throw new Error('Gemini: no response (check key/billing)');
-    return gj.candidates[0].content.parts.map(p=>p.text||'').join('');
-  }
-  // claude (via worker, or direct inside claude.ai)
-  const url = WORKER_BASE ? WORKER_BASE+'/ai/messages' : 'https://api.anthropic.com/v1/messages';
-  const headers={'Content-Type':'application/json'};
-  if(WORKER_BASE && curKey()) headers['x-user-key']=curKey();
-  const r=await fetch(url,{method:'POST',headers,body:JSON.stringify({
-    model:'claude-sonnet-4-6',max_tokens:maxTok,messages:[{role:'user',content:[
-      {type:'image',source:{type:'base64',media_type:media,data:base64}},
-      {type:'text',text:prompt}]}]})});
-  if(!r.ok) throw new Error('Claude '+r.status);
-  const d=await r.json();
-  return d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${curKey()}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:media,data:base64}}]}]})});
+  if(!r.ok){ let m=''; try{ m=(await r.json()).error?.message||''; }catch(_){} throw new Error('Gemini '+r.status+(m?': '+m.slice(0,80):'')); }
+  const gj=await r.json();
+  if(!gj.candidates||!gj.candidates[0]) throw new Error('Gemini: no response (check key)');
+  return gj.candidates[0].content.parts.map(p=>p.text||'').join('');
 }
 async function aiText(prompt,maxTok=200){
-  const p=S.aiProvider;
-  if(p==='openai'){
-    const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+curKey()},
-      body:JSON.stringify({model:'gpt-4o-mini',max_tokens:maxTok,messages:[{role:'user',content:prompt}]})});
-    if(!r.ok) throw new Error('OpenAI '+r.status);
-    return (await r.json()).choices[0].message.content;
-  }
-  if(p==='gemini'){
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${curKey()}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-       body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-    if(!r.ok){ let m=''; try{ m=(await r.json()).error?.message||''; }catch(_){} throw new Error('Gemini '+r.status+(m?': '+m.slice(0,80):'')); }
-    const gj=await r.json();
-    if(!gj.candidates||!gj.candidates[0]) throw new Error('Gemini: no response (check key/billing)');
-    return gj.candidates[0].content.parts.map(p=>p.text||'').join('');
-  }
-  const url = WORKER_BASE ? WORKER_BASE+'/ai/messages' : 'https://api.anthropic.com/v1/messages';
-  const headers={'Content-Type':'application/json'};
-  if(WORKER_BASE && curKey()) headers['x-user-key']=curKey();
-  const r=await fetch(url,{method:'POST',headers,body:JSON.stringify({
-    model:'claude-sonnet-4-6',max_tokens:maxTok,messages:[{role:'user',content:prompt}]})});
-  if(!r.ok) throw new Error('Claude '+r.status);
-  const d=await r.json();
-  return d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${curKey()}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+  if(!r.ok){ let m=''; try{ m=(await r.json()).error?.message||''; }catch(_){} throw new Error('Gemini '+r.status+(m?': '+m.slice(0,80):'')); }
+  const gj=await r.json();
+  if(!gj.candidates||!gj.candidates[0]) throw new Error('Gemini: no response (check key)');
+  return gj.candidates[0].content.parts.map(p=>p.text||'').join('');
 }
 
 const MEAL_PROMPT=`You are a professional nutritionist estimating a meal from a photo. Work step by step internally: (1) identify every distinct food and drink item, (2) for each, estimate the portion as weight in grams or volume in ml using visual cues like plate size, utensils and hand-scale, (3) only then compute calories and macros from that portion. Portion sizes are usually underestimated, so lean realistic, not small. Assume a typical single serving only when the photo gives no scale cues. Respond with ONLY valid JSON, no prose, no markdown:
@@ -1290,7 +1257,22 @@ function renderFoodLog(){
 /* ---------- unified Add-food flow ---------- */
 let _pendingEst=null, _pendingThumb=null;
 
-$('addFoodBtn').onclick=()=>{ if(!S.height){openSetup();return;} openSheet($('methodSheet')); };
+$('addFoodBtn').onclick=()=>{ if(!S.height){openSetup();return;} renderRecentMeals(); openSheet($('methodSheet')); };
+function renderRecentMeals(){
+  const wrap=$('recentMeals'); if(!wrap) return;
+  const list=(S.savedMeals||[]).slice(0,6);
+  if(!list.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML='<div class="recent-lab">Quick add — tap to log again (no AI needed)</div>'+
+    '<div class="recent-chips">'+list.map((m,i)=>
+      `<button class="recent-chip" data-i="${i}"><span class="rc-name">${m.dish}</span><span class="rc-kcal">${m.kcal} kcal</span></button>`
+    ).join('')+'</div>';
+  wrap.querySelectorAll('.recent-chip').forEach(b=>b.onclick=()=>{
+    const m=list[+b.dataset.i];
+    S.meals.push({t:Date.now(),dish:m.dish,kcal:m.kcal,p:m.p,c:m.c,f:m.f,fb:m.fb,thumb:null});
+    rememberMeal(m); // bump recency
+    save(S); closeSheets(); buildPlan(); toast('Logged '+m.dish+' · '+m.kcal+' kcal');
+  });
+}
 $('closeMethod').onclick=closeSheets;
 document.querySelectorAll('.method').forEach(b=>b.onclick=()=>{
   const m=b.dataset.m; closeSheets();
@@ -1304,6 +1286,8 @@ document.querySelectorAll('.method').forEach(b=>b.onclick=()=>{
 /* normalised estimate: {dish, kcal, protein_g, carb_g, fat_g, items?, assumptions?, confidence?, source, thumb?} */
 function showEstimate(est){
   _pendingEst=est;
+  // reset the footer button (edit mode may have changed it)
+  $('logFood').textContent='Log this meal'; $('logFood').onclick=commitLog;
   const conf={high:'High confidence',medium:'Medium confidence',low:'Low confidence — worth a sanity check'}[est.confidence]||'';
   const srcLabel={photo:'From your photo',barcode:'From the product label',search:'Database or AI estimate',describe:'AI estimate'}[est.source]||'';
   $('foodTitle').textContent=est.dish||'Your food';
@@ -1320,11 +1304,41 @@ function showEstimate(est){
       <div class="em"><b style="color:var(--ink-dim)">${est.fat_g||0}g</b><span>Fat</span></div>
     </div>
     ${itemsBlock}
-    ${noteText?`<div class="est-note">⚠︎ <span>${noteText} ${srcLabel}.</span></div>`:''}`;
+    ${noteText?`<div class="est-note">⚠︎ <span>${noteText} ${srcLabel}.</span></div>`:''}
+    <button class="adjust-btn" id="adjustBtn">✎ Adjust name or numbers</button>`;
   $('logFood').style.display='block';
   $('retryFood').style.display = est.source==='photo'?'block':'none';
   $('foodActions').style.display='block';
+  const ab=$('adjustBtn'); if(ab) ab.onclick=showEstimateEdit;
   openSheet($('foodSheet'));
+}
+/* editable version — correct the AI when it's off */
+function showEstimateEdit(){
+  const e=_pendingEst||{};
+  $('foodTitle').textContent='Adjust';
+  $('foodSub').textContent='Fix anything that looks off, then log it.';
+  $('foodBody').innerHTML=`
+    <div class="adj-field"><label>Name</label><input type="text" id="adjName" value="${(e.dish||'').replace(/"/g,'&quot;')}"></div>
+    <div class="adj-grid">
+      <div class="adj-field"><label>Calories</label><input type="number" inputmode="numeric" id="adjKcal" value="${Math.round(e.kcal)||0}"></div>
+      <div class="adj-field"><label>Protein (g)</label><input type="number" inputmode="numeric" id="adjP" value="${Math.round(e.protein_g)||0}"></div>
+      <div class="adj-field"><label>Carbs (g)</label><input type="number" inputmode="numeric" id="adjC" value="${Math.round(e.carb_g)||0}"></div>
+      <div class="adj-field"><label>Fat (g)</label><input type="number" inputmode="numeric" id="adjF" value="${Math.round(e.fat_g)||0}"></div>
+      <div class="adj-field"><label>Fibre (g)</label><input type="number" inputmode="numeric" id="adjFb" value="${Math.round(e.fiber_g)||0}"></div>
+    </div>
+    <p class="adj-hint">Tip: portion size is what AI most often gets wrong — adjust calories to match what you actually ate.</p>`;
+  // turn the footer Log button into "Save & log" for the edited values
+  $('logFood').textContent='Save & log';
+  $('logFood').onclick=()=>{
+    _pendingEst={
+      dish:($('adjName').value||'Food').trim(),
+      kcal:+$('adjKcal').value||0, protein_g:+$('adjP').value||0,
+      carb_g:+$('adjC').value||0, fat_g:+$('adjF').value||0, fiber_g:+$('adjFb').value||0,
+      thumb:e.thumb||null, source:e.source
+    };
+    commitLog();
+  };
+  $('retryFood').style.display='none';
 }
 function showEstimating(title,sub){
   $('foodTitle').textContent=title; $('foodSub').textContent=sub;
@@ -1441,13 +1455,25 @@ $('scanManual').onclick=()=>{ stopScanner(); scanManualPrompt(); };
 $('closeScan').onclick=()=>{ stopScanner(); closeSheets(); };
 
 /* LOG (any source) */
-$('logFood').onclick=()=>{
+function commitLog(){
   if(!_pendingEst)return; const e=_pendingEst;
-  S.meals.push({t:Date.now(),dish:e.dish||'Food',kcal:Math.round(e.kcal)||0,
+  const meal={dish:e.dish||'Food',kcal:Math.round(e.kcal)||0,
     p:Math.round(e.protein_g)||0,c:Math.round(e.carb_g)||0,
-    f:Math.round(e.fat_g)||0,fb:Math.round(e.fiber_g)||0,thumb:e.thumb||null});
+    f:Math.round(e.fat_g)||0,fb:Math.round(e.fiber_g)||0};
+  S.meals.push({t:Date.now(),...meal,thumb:e.thumb||null});
+  rememberMeal(meal);   // save to recents for instant re-logging (no AI next time)
   save(S); _pendingEst=null; closeSheets(); buildPlan(); toast('Logged · target updated');
-};
+}
+$('logFood').onclick=commitLog;
+/* recent meals: dedupe by name, keep most recent ~30, persisted */
+function rememberMeal(m){
+  if(!S.savedMeals) S.savedMeals=[];
+  const key=(m.dish||'').trim().toLowerCase();
+  S.savedMeals=S.savedMeals.filter(x=>(x.dish||'').trim().toLowerCase()!==key);
+  S.savedMeals.unshift({...m, last:Date.now(), n:(( S.savedMeals.find(x=>(x.dish||'').trim().toLowerCase()===key)?.n)||0)+1});
+  S.savedMeals=S.savedMeals.slice(0,30);
+  save(S);
+}
 
 // downscale image to ~768px, return base64 + small thumb dataURL
 function prepImage(file){
@@ -1740,47 +1766,23 @@ function updateConn(){
   if(chip) chip.classList.toggle('on',S.connected);
 }
 
-/* ---------- AI settings ---------- */
-const AI_META={
-  claude:{label:'Anthropic API key',ph:'sk-ant-...',
-    hint:'Browsers can\'t call Anthropic directly, so Claude routes through the app\'s Worker. Inside Claude.ai it works with no key for testing.'},
-  openai:{label:'OpenAI API key',ph:'sk-...',
-    hint:'Used directly from your device. Get one at platform.openai.com. Uses GPT-4o for photos.'},
-  gemini:{label:'Google AI Studio key',ph:'AIza...',
-    hint:'Used directly from your device. Free tier available at aistudio.google.com. Uses Gemini 2.5 Flash.'}
-};
+/* ---------- AI settings (Gemini only) ---------- */
 function applyAIMeta(){
-  const m=AI_META[S.aiProvider];
-  $('keyLabel').childNodes[0].nodeValue=m.label+' ';
-  $('keyIn').placeholder=m.ph;
-  $('aiHint').querySelector('span').textContent=m.hint;
-  document.querySelectorAll('#aiSeg button').forEach(b=>b.classList.toggle('act',b.dataset.ai===S.aiProvider));
-  // show saved badge if this provider already has a key stored
   const saved=!!curKey();
   $('keySaved').style.display=saved?'inline-block':'none';
   $('saveAI').textContent=saved?'Update key':'Save key';
 }
 function updateAIPill(){
-  const p=$('aiPill');
   const ready=aiReady();
-  p.classList.toggle('on',ready);
-  const name={claude:'Claude',openai:'OpenAI',gemini:'Gemini'}[S.aiProvider];
-  $('aiPillTxt').textContent = ready ? name+' ready' : 'No AI key';
+  $('aiPill').classList.toggle('on',ready);
+  $('aiPillTxt').textContent = ready ? 'Gemini ready' : 'No AI key';
   const pb=document.getElementById('poweredBy');
-  if(pb) pb.textContent = {claude:'Claude AI',openai:'ChatGPT',gemini:'Gemini'}[S.aiProvider];
+  if(pb) pb.textContent='Gemini';
 }
 $('settingsTabBtn').onclick=$('aiPill').onclick=()=>{
   $('keyIn').value=curKey(); $('keyIn').type='password'; $('keyEye').textContent='show';
   applyAIMeta(); openSheet($('aiSheet'));
 };
-document.querySelectorAll('#aiSeg button').forEach(b=>b.onclick=()=>{
-  // save the current field into the current provider before switching, so nothing is lost
-  const typed=$('keyIn').value.trim();
-  if(typed) { S.aiKeys[S.aiProvider]=typed; save(S); }
-  S.aiProvider=b.dataset.ai; save(S);
-  $('keyIn').value=curKey(); $('keyIn').type='password'; $('keyEye').textContent='show';
-  applyAIMeta(); updateAIPill();
-});
 $('keyEye').onclick=()=>{
   const i=$('keyIn');
   if(i.type==='password'){ i.type='text'; $('keyEye').textContent='hide'; }
@@ -1788,14 +1790,14 @@ $('keyEye').onclick=()=>{
 };
 $('saveAI').onclick=()=>{
   const k=$('keyIn').value.trim();
-  if(S.aiProvider!=='claude' && !k){ toast('Paste your '+AI_META[S.aiProvider].label.split(' ')[0]+' key'); return; }
-  S.aiKeys[S.aiProvider]=k; S.aiKey=k; save(S);
+  if(!k){ toast('Paste your Gemini key'); return; }
+  S.aiKey=k; save(S);
   updateAIPill(); applyAIMeta(); _coachKey=null; buildPlan();
-  toast(k?'✓ '+({claude:'Claude',openai:'OpenAI',gemini:'Gemini'}[S.aiProvider])+' key saved on this device':'Provider set');
+  toast('✓ Gemini key saved on this device');
   closeSheets();
 };
 $('clearAI').onclick=()=>{
-  delete S.aiKeys[S.aiProvider]; S.aiKey=''; save(S);
+  S.aiKey=''; save(S);
   $('keyIn').value=''; updateAIPill(); applyAIMeta(); toast('Key removed');
 };
 $('closeAI').onclick=closeSheets;
