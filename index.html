@@ -926,10 +926,8 @@ Item: "${desc}"`;
 const DRINK_CHIPS=['Chagee jasmine milk tea','Tealive classic milk tea','ZUS iced latte',
   'Teh tarik','Kopi O','100 Plus can','Milo ais'];
 async function aiCoach(ctx){
-  try{
-    const txt=await aiText(`You are a supportive nutrition coach focused only on eating for fat loss — not exercise or recovery. In 1-2 short sentences (max ~30 words), give today's single most useful eating directive based on what's left in their budget and their protein gap. Be specific and warm, not preachy. Never recommend eating below the calorie floor. Data:\n${JSON.stringify(ctx)}\nReply with ONLY the coaching line, no quotes.`,200);
-    return txt.trim().replace(/^["']|["']$/g,'');
-  }catch(e){ return null; }
+  const txt=await aiText(`You are a supportive nutrition coach focused only on eating for fat loss — not exercise or recovery. In 1-2 short sentences (max ~30 words), give today's single most useful eating directive based on what's left in their budget and their protein gap. Be specific and warm, not preachy. Never recommend eating below the calorie floor. Data:\n${JSON.stringify(ctx)}\nReply with ONLY the coaching line, no quotes.`,200);
+  return txt.trim().replace(/^["']|["']$/g,'');
 }
 
 async function aiGradeDay(ctx){
@@ -1499,10 +1497,15 @@ async function refreshCoach(plan){
   if(key===_coachKey) return;       // avoid duplicate calls for same state
   _coachKey=key;
   card.classList.add('load'); txt.textContent='Thinking through your day';
-  const line=await aiCoach(ctx);
-  card.classList.remove('load');
-  if(line) txt.textContent=line;
-  else txt.textContent='Coach is offline right now — your targets above still hold.';
+  try{
+    const line=await aiCoach(ctx);
+    card.classList.remove('load');
+    txt.textContent = line || 'Coach is offline right now — your targets above still hold.';
+  }catch(e){
+    _coachKey=null; // allow retry
+    card.classList.remove('load');
+    txt.textContent='Coach error: '+(e.message||e)+' — tap settings to check your key.';
+  }
 }
 
 /* ---------- "enough for / probably not" meal suggestions ---------- */
