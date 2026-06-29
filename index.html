@@ -1030,11 +1030,12 @@ async function buildPlan(){
 
   const plan={water,protein,carbG,fatTarget,phys,tdee,intake,deficit,flooredHit};
   window._plan=plan;
-  render(plan);
+  render(plan);              // note: render() also schedules the meal-suggestions call
   renderFoodLog();
-  refreshCoach(plan);
-  refreshGrade(plan);
+  refreshCoach(plan);        // coach fires first (most useful)
   recordDailySnapshot(plan);
+  // grade is least time-sensitive — delay it so three Gemini calls don't fire at once (avoids free-tier 429s)
+  setTimeout(()=>refreshGrade(plan), 6000);
 }
 
 /* ---- daily history: one snapshot per day for Trends + Weekly report ---- */
@@ -1177,8 +1178,8 @@ function render({water,protein,carbG,fatTarget,phys,tdee,intake,deficit,flooredH
         ? `${wleft.toFixed(1)}L to go · a touch higher today, you've burned more`
         : `${wleft.toFixed(1)}L to go for your bodyweight target`);
 
-  // meal suggestions for remaining calories
-  renderEnough(intake, e.kcal);
+  // meal suggestions for remaining calories — slight delay so it doesn't fire at the same instant as the coach (eases free-tier rate limits)
+  setTimeout(()=>renderEnough(intake, e.kcal), 2500);
 
   renderPredict();
   // current weight + why line
@@ -1502,9 +1503,16 @@ async function refreshCoach(plan){
     card.classList.remove('load');
     txt.textContent = line || 'Coach is offline right now — your targets above still hold.';
   }catch(e){
+    const msg=(e.message||String(e));
     _coachKey=null; // allow retry
     card.classList.remove('load');
-    txt.textContent='Coach error: '+(e.message||e)+' — tap settings to check your key.';
+    if(/429|rate|quota|resource.?exhausted/i.test(msg)){
+      // free-tier per-minute limit — back off and retry automatically
+      txt.textContent='Coach is busy (free AI limit) — retrying in a moment…';
+      setTimeout(()=>{ _coachKey=null; refreshCoach(plan); }, 35000);
+    } else {
+      txt.textContent='Coach error: '+msg+' — tap settings to check your key.';
+    }
   }
 }
 
@@ -1562,7 +1570,12 @@ async function renderEnough(intake, eatenKcal){
   }catch(e){
     _enoughKey=null; // allow retry next render
     yes.classList.remove('dim'); no.classList.remove('dim');
-    yes.innerHTML='<span class="enough-retry">↻ Tap to load suggestions</span>';
+    const msg=(e.message||String(e));
+    if(/429|rate|quota|resource.?exhausted/i.test(msg)){
+      yes.innerHTML='<span class="enough-retry">↻ AI busy — tap to retry</span>';
+    } else {
+      yes.innerHTML='<span class="enough-retry">↻ Tap to load suggestions</span>';
+    }
     no.innerHTML='';
     const r=yes.querySelector('.enough-retry');
     if(r) r.onclick=(ev)=>{ ev.stopPropagation(); _enoughKey=null; renderEnough(intake, eatenKcal); };
