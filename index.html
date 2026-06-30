@@ -28,20 +28,94 @@
   .logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#16222c,#0d141c);
     display:grid;place-items:center;border:1px solid var(--line);flex-shrink:0;overflow:hidden}
   .logo svg{display:block;animation:logoBreathe 3.2s ease-in-out infinite}
-  @keyframes logoBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
-  .logo-w{stroke-dasharray:18;stroke-dashoffset:18;animation:logoDraw 1s ease-out .15s forwards}
-  @keyframes logoDraw{to{stroke-dashoffset:0}}
+  @keyframes logoBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .logo svg{animation:logoBreathe 4s ease-in-out infinite}
+  /* continuous "scribble on water" — strokes draw in, hold, fade, redraw */
+  .logo-w{stroke-dasharray:18;stroke-dashoffset:18;animation:scribbleW 5s ease-in-out infinite}
+  @keyframes scribbleW{
+    0%{stroke-dashoffset:18}
+    22%{stroke-dashoffset:0}
+    72%{stroke-dashoffset:0}
+    88%{stroke-dashoffset:-18}
+    100%{stroke-dashoffset:-18}
+  }
   .logo-arm{stroke-dasharray:2.4;stroke-dashoffset:2.4}
-  .logo-arm-l{animation:logoDraw .4s ease-out .9s forwards}
-  .logo-arm-r{animation:logoDraw .4s ease-out 1s forwards}
-  .logo svg path:first-child{animation:logoGlow 3.2s ease-in-out infinite}
-  @keyframes logoGlow{0%,100%{opacity:.88}50%{opacity:1}}
+  .logo-arm-l{animation:scribbleArm 5s ease-in-out infinite;animation-delay:.55s}
+  .logo-arm-r{animation:scribbleArm 5s ease-in-out infinite;animation-delay:.7s}
+  @keyframes scribbleArm{
+    0%{stroke-dashoffset:2.4}
+    14%{stroke-dashoffset:0}
+    66%{stroke-dashoffset:0}
+    80%{stroke-dashoffset:-2.4}
+    100%{stroke-dashoffset:-2.4}
+  }
+  /* water drop ripples/shimmers under the scribble */
+  .logo svg path:first-child{animation:logoRipple 5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+  @keyframes logoRipple{
+    0%,100%{opacity:.85}
+    20%{opacity:1}
+    50%{opacity:.92;transform:scaleY(1.015)}
+    70%{opacity:1}
+  }
   @media (prefers-reduced-motion:reduce){
     .logo svg,.logo-w,.logo-arm,.logo svg path:first-child{animation:none;stroke-dashoffset:0;transform:none;opacity:.95}
   }
   .brand h1{font-size:15.5px;font-weight:700;letter-spacing:-0.01em;line-height:1.15}
   .brand .date{font-size:12px;color:var(--ink-faint);margin-top:1px}
   .head-actions{flex-shrink:0}
+  /* profile button (top-right) */
+  .profile-btn{position:relative;width:40px;height:40px;border-radius:50%;background:var(--panel);
+    border:1px solid var(--line);color:var(--ink-dim);display:grid;place-items:center;cursor:pointer}
+  .profile-btn svg{width:21px;height:21px}
+  .profile-btn.has-photo{border-color:#2c3b33}
+  .profile-btn .pb-img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
+  .profile-btn:active{transform:scale(.95)}
+  .profile-btn.act{border-color:#234a3a;color:var(--goal)}
+  .profile-dot{position:absolute;top:-1px;right:-1px;width:11px;height:11px;border-radius:50%;
+    background:var(--ink-faint);border:2px solid var(--bg)}
+  .profile-dot:not(.off){background:var(--goal);box-shadow:0 0 7px var(--goal)}
+  /* profile screen */
+  .prof-hero{display:flex;align-items:center;gap:13px;margin-bottom:16px}
+  .prof-av{position:relative;width:60px;height:60px;border-radius:50%;flex-shrink:0;
+    display:grid;place-items:center;cursor:pointer;padding:0;overflow:visible;
+    background:linear-gradient(135deg,rgba(62,225,154,.18),rgba(56,199,225,.14));
+    border:1px solid #234a3a;color:var(--goal)}
+  .prof-av .prof-av-icon{width:30px;height:30px}
+  .prof-av.has-photo{background:none;border-color:#2c3b33}
+  .prof-av-img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
+  .prof-av-cam{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;
+    background:var(--goal);border:2.5px solid var(--bg);display:grid;place-items:center}
+  .prof-av-cam svg{width:11px;height:11px;color:#08130d}
+  .prof-hero-txt{background:none;border:none;text-align:left;padding:0;cursor:pointer;flex:1;min-width:0}
+  .prof-name{font-size:19px;font-weight:800;line-height:1.1;color:var(--ink)}
+  .prof-sub{font-size:12.5px;color:var(--ink-faint);margin-top:3px}
+  .prof-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:15px 16px;margin-bottom:13px}
+  .prof-card-head{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);
+    font-weight:700;margin-bottom:12px}
+  .prof-conn{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .prof-conn-state{display:flex;align-items:flex-start;gap:10px;min-width:0}
+  .prof-conn-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;
+    background:var(--goal);box-shadow:0 0 7px var(--goal)}
+  .prof-conn-dot.off{background:var(--ink-faint);box-shadow:none}
+  .prof-conn-title{font-size:14.5px;font-weight:700;line-height:1.2}
+  .prof-conn-sub{font-size:11.5px;color:var(--ink-faint);margin-top:3px;line-height:1.4}
+  .prof-btn{flex-shrink:0;background:var(--goal);color:#08130d;border:none;font-size:13px;font-weight:800;
+    padding:9px 15px;border-radius:11px;cursor:pointer;white-space:nowrap}
+  .prof-btn:active{transform:scale(.96)}
+  .prof-btn.on{background:transparent;color:var(--ink-dim);border:1px solid var(--line)}
+  .prof-btn.alt{flex:1;background:var(--panel2);color:var(--ink);border:1px solid var(--line);font-weight:700}
+  .prof-nums{display:grid;grid-template-columns:1fr 1fr;gap:11px 14px;margin-bottom:14px}
+  .prof-num{min-width:0}
+  .prof-num-lab{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);font-weight:600}
+  .prof-num-val{font-size:16px;font-weight:800;margin-top:3px}
+  .prof-edit{width:100%;background:transparent;border:1px dashed var(--line);color:var(--ink-dim);
+    font-size:13px;font-weight:600;padding:11px;border-radius:11px;cursor:pointer}
+  .prof-edit:active{border-color:var(--goal);color:var(--goal)}
+  .prof-note{font-size:12px;color:var(--ink-dim);line-height:1.5;margin-bottom:13px}
+  .prof-actions{display:flex;gap:9px;margin-bottom:12px}
+  .prof-link{display:inline-block;font-size:12px;color:var(--ink-faint);text-decoration:none}
+  .prof-link:active{color:var(--goal)}
   .gear{width:38px;height:38px;border-radius:11px;background:var(--panel);border:1px solid var(--line);
     color:var(--ink-dim);display:grid;place-items:center;cursor:pointer}
   .gear:active{transform:scale(.95)}
@@ -115,6 +189,9 @@
   .intake .meta{font-size:12px;color:var(--ink-dim);margin-top:12px;line-height:1.35}
   .macros2{display:flex;gap:10px;margin-top:10px}
   .macro2{flex:1;background:#0f1814;border:1px solid #1c2c25;border-radius:11px;padding:9px 12px}
+  .sugarcard{background:#0f1814;border:1px solid #1c2c25;border-radius:11px;padding:9px 12px;margin-top:10px}
+  .sugarcard .m-sub{margin-top:6px}
+  .sugarcard .ctag{font-size:11px;color:var(--ink-faint)}
   .m2-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
   .m2-lab{font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-faint);
     display:flex;align-items:center;gap:6px}
@@ -168,15 +245,45 @@
     font-size:16px;padding:10px 6px;border-radius:10px;cursor:pointer}
   .wbtn.wundo:active{transform:scale(.96)}
 
+  /* recovery nutrition card */
+  .recovcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:13px 15px;margin-bottom:14px;border-left-width:3px}
+  .recovcard.green{border-left-color:var(--goal)}
+  .recovcard.yellow{border-left-color:#e8d24a}
+  .recovcard.red{border-left-color:#e0683b}
+  .recovcard.unknown{border-left-color:var(--line)}
+  .rc-head{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.08em;color:var(--ink-faint);font-weight:700;margin-bottom:6px}
+  .rc-pip{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--line)}
+  .recovcard.green .rc-pip{background:var(--goal);box-shadow:0 0 7px var(--goal)}
+  .recovcard.yellow .rc-pip{background:#e8d24a;box-shadow:0 0 7px #e8d24a}
+  .recovcard.red .rc-pip{background:#e0683b;box-shadow:0 0 7px #e0683b}
+  .rc-body{font-size:13.5px;line-height:1.5;color:var(--ink)}
+  .rc-foods{margin-top:9px;padding-top:9px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-dim);line-height:1.5}
+  .rc-foods b{color:var(--ink);font-weight:600}
+
   /* AI coach */
-  .coach{display:flex;gap:11px;align-items:flex-start;background:var(--panel);
-    border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin-bottom:14px}
+  .coach{display:flex;gap:11px;align-items:flex-start;background:var(--panel);    border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin-bottom:14px}
   .coach-ai{flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:0.06em;color:#08130d;
     background:linear-gradient(135deg,var(--goal),#2bb988);padding:4px 7px;border-radius:7px;margin-top:1px}
   .coach-txt{font-size:13.5px;line-height:1.45;color:var(--ink)}
   .coach.load .coach-txt{color:var(--ink-faint)}
   .coach.load .coach-txt::after{content:'▍';animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
+  /* home calorie-bank strip */
+  .homebank{width:100%;text-align:left;display:flex;align-items:center;gap:12px;cursor:pointer;
+    background:linear-gradient(155deg,#13251c,#0f1a16);border:1px solid #234a3a;border-radius:var(--r);
+    padding:13px 15px;margin-bottom:14px;color:var(--ink)}
+  .homebank.milestone{border-color:rgba(240,169,59,.45);box-shadow:0 0 0 1px rgba(240,169,59,.2)}
+  .homebank:active{transform:scale(.99)}
+  .homebank-l{flex:1;min-width:0}
+  .homebank-lab{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#5fae8c;font-weight:700}
+  .homebank-bal{font-size:18px;font-weight:800;color:var(--goal);margin-top:2px;font-variant-numeric:tabular-nums}
+  .homebank-u{font-size:11px;color:var(--ink-dim);font-weight:600}
+  .homebank-msg{font-size:12px;color:var(--ink-dim);line-height:1.4;margin-top:4px}
+  .homebank.milestone .homebank-msg{color:var(--ink)}
+  .homebank-chev{flex-shrink:0;font-size:22px;color:var(--ink-faint);line-height:1}
 
   /* yesterday food grade */
   .grade{display:flex;gap:13px;align-items:center;background:var(--panel);border:1px solid var(--line);
@@ -218,6 +325,34 @@
     display:flex;align-items:center;justify-content:center;gap:9px}
   .snap:active{transform:scale(.98)}
   .snap svg{color:var(--goal)}
+  .askbtn{width:100%;margin-top:9px;background:transparent;border:1px solid var(--line);
+    color:var(--ink-dim);font-size:13px;font-weight:600;padding:11px;border-radius:13px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px}
+  .askbtn:active{transform:scale(.98);border-color:var(--goal)}
+  .askbtn svg{color:var(--goal)}
+  /* diet chat */
+  .chatlog{max-height:42vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:9px;
+    margin:4px 0 12px;padding:2px}
+  .chatlog:empty{display:none}
+  .bub{max-width:85%;font-size:13.5px;line-height:1.5;padding:10px 13px;border-radius:14px;white-space:pre-wrap}
+  .bub.me{align-self:flex-end;background:var(--goal);color:#08130d;font-weight:500;border-bottom-right-radius:5px}
+  .bub.bot{align-self:flex-start;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:5px}
+  .bub.bot.thinking{color:var(--ink-faint);font-style:italic}
+  .bub .src{display:block;margin-top:6px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;
+    font-weight:700;color:var(--ink-faint)}
+  .bub.me .src{color:rgba(8,19,13,.55)}
+  .chatchips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
+  .chatchip{background:var(--bg);border:1px solid var(--line);color:var(--ink-dim);font-size:12px;
+    padding:7px 11px;border-radius:18px;cursor:pointer}
+  .chatchip:active{border-color:var(--goal);color:var(--ink)}
+  .chatbar{display:flex;gap:8px;align-items:center}
+  .chatbar input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:12px;
+    color:var(--ink);font-size:15px;padding:12px 13px}
+  .chatbar input:focus{outline:none;border-color:var(--goal)}
+  .chatsend{flex-shrink:0;width:44px;height:44px;background:var(--goal);border:none;border-radius:12px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .chatsend svg{color:#08130d}
+  .chatsend:active{transform:scale(.95)}
 
   /* food estimate sheet */
   #foodBody .preview{width:100%;height:160px;object-fit:cover;border-radius:14px;margin-bottom:16px;
@@ -232,7 +367,17 @@
   .est-macros .em span{font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em}
   .est-items{font-size:12.5px;color:var(--ink-dim);line-height:1.6;background:var(--bg);
     border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:6px}
-  .est-items .ei{display:flex;justify-content:space-between;gap:10px}
+  .est-items .ei{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:5px 0;border-top:1px solid rgba(255,255,255,.04)}
+  .est-items .ei:first-of-type{border-top:none}
+  .est-items .ei-info{flex:1;min-width:0}
+  .est-items .ei-food{color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .est-items .ei-port{font-size:11px;color:var(--ink-faint)}
+  .est-items .ei-kcal{font-weight:700;color:var(--ink-dim);white-space:nowrap}
+  .est-items .ei-x{font-size:14px;color:var(--ink-faint);cursor:pointer;padding:2px 5px;flex-shrink:0;border-radius:6px}
+  .est-items .ei-x:active{color:var(--warn);background:rgba(224,104,59,.12)}
+  .est-items .ei.gone{opacity:.4}
+  .est-items .ei.gone .ei-food{text-decoration:line-through}
+  .est-items .ei-hint{font-size:10.5px;color:var(--ink-faint);margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.04)}
   .est-items b{color:var(--ink-dim);font-weight:600;display:block;margin-bottom:5px;
     text-transform:uppercase;font-size:10px;letter-spacing:.06em}
   .food-actions{margin-top:4px}
@@ -248,6 +393,17 @@
   .adj-hint{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:6px}
   .est-note{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:10px;
     display:flex;gap:6px;align-items:flex-start}
+  /* barcode coach card */
+  .bcoach{border-radius:13px;padding:12px 14px;margin:14px 0 4px;border:1px solid}
+  .bcoach.good{background:rgba(62,225,154,.09);border-color:rgba(62,225,154,.32)}
+  .bcoach.ok{background:rgba(232,210,74,.08);border-color:rgba(232,210,74,.30)}
+  .bcoach.treat{background:rgba(224,145,59,.09);border-color:rgba(224,145,59,.34)}
+  .bcoach .c-head{font-size:13.5px;font-weight:800;margin-bottom:4px}
+  .bcoach.good .c-head{color:var(--goal)} .bcoach.ok .c-head{color:#e8d24a} .bcoach.treat .c-head{color:#e0913b}
+  .bcoach .c-body{font-size:12.5px;color:var(--ink-dim);line-height:1.55}
+  .bcoach .c-swap{margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink);line-height:1.5}
+  .bcoach .c-swap b{color:var(--goal);font-weight:700}
+  .bcoach .c-swap .c-swap-load{color:var(--ink-faint);font-size:11.5px}
   .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--goal);
     border-radius:50%;animation:spin .8s linear infinite;margin:30px auto}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -287,6 +443,26 @@
   .chip{background:var(--bg);border:1px solid var(--line);color:var(--ink-dim);font-size:12px;
     padding:7px 11px;border-radius:18px;cursor:pointer}
   .chip:active{border-color:var(--goal);color:var(--ink)}
+  /* source badge on results (local DB = instant, no AI) */
+  .sr-badge{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+    padding:2px 6px;border-radius:6px;margin-top:3px;background:rgba(62,225,154,.13);color:var(--goal)}
+  /* My Meals library */
+  .mealsbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px}
+  .mealsbar .seg{display:flex;gap:6px}
+  .seg-btn{font-size:11.5px;font-weight:700;color:var(--ink-dim);background:var(--bg);border:1px solid var(--line);
+    border-radius:9px;padding:6px 11px;cursor:pointer}
+  .seg-btn.on{color:#08130d;background:var(--goal);border-color:var(--goal)}
+  #mealsList{max-height:52vh;overflow-y:auto;overflow-x:hidden;margin-bottom:6px}
+  .mrow{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .mrow .m-main{flex:1;min-width:0;cursor:pointer}
+  .mrow .m-name{font-size:13.5px;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mrow .m-meta{font-size:11px;color:var(--ink-faint);margin-top:2px}
+  .mrow .m-kcal{font-size:14px;font-weight:800;color:var(--goal);white-space:nowrap}
+  .m-star{font-size:18px;line-height:1;cursor:pointer;color:var(--ink-faint);flex-shrink:0;padding:2px 4px}
+  .m-star.on{color:var(--protein)}
+  .m-del{font-size:15px;line-height:1;cursor:pointer;color:var(--ink-faint);flex-shrink:0;padding:2px 4px}
+  .m-del:active{color:var(--warn)}
   /* scanner */
   .scanwrap{position:relative;width:100%;aspect-ratio:4/3;background:#000;border-radius:14px;
     overflow:hidden;border:1px solid var(--line)}
@@ -296,8 +472,40 @@
   @keyframes scanmove{0%,100%{top:25%}50%{top:75%}}
   .smuted{font-size:12.5px;color:var(--ink-faint);text-align:center;padding:18px 8px;line-height:1.5}
 
-  .predict{background:linear-gradient(160deg,#10211a,#101a18);border:1px solid #1f3b30;
-    border-radius:var(--r);padding:16px;margin-bottom:14px}
+  /* calorie bank */
+  .bank{background:linear-gradient(155deg,#13251c,#0f1a16);border:1px solid #234a3a;
+    border-radius:var(--r);padding:17px 17px 15px;margin-bottom:14px;position:relative;overflow:hidden}
+  .bank.milestone{border-color:rgba(240,169,59,.5);box-shadow:0 0 0 1px rgba(240,169,59,.25),0 8px 30px rgba(240,169,59,.1)}
+  .bank-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .bank-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#5fae8c;font-weight:700}
+  .bank-tier{font-size:12px;font-weight:800}
+  .bank-bal{display:flex;align-items:baseline;gap:8px;margin:7px 0 3px}
+  .bank-bal .num{font-size:38px;font-weight:800;color:var(--goal);line-height:1;font-variant-numeric:tabular-nums}
+  .bank-unit{font-size:13px;color:var(--ink-dim);font-weight:600}
+  .bank-next{font-size:13px;color:var(--ink);line-height:1.45;margin-top:6px}
+  .bank-next b{color:var(--goal);font-weight:800}
+  .bank-track{height:7px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;margin:11px 0 9px}
+  .bank-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--goal),#2bb988);
+    width:0%;transition:width .6s ease}
+  .bank.milestone .bank-fill{background:linear-gradient(90deg,#f0a93b,#f5c869)}
+  .bank-pace{font-size:12px;color:var(--ink-dim);line-height:1.4}
+  .bank-pace b{color:var(--ink);font-weight:700}
+  .bank-spend{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)}
+  .bank-spend-head{font-size:12.5px;color:var(--ink-dim);line-height:1.5;margin-bottom:9px}
+  .bank-spend-head b{color:var(--goal);font-weight:800;font-variant-numeric:tabular-nums}
+  .bank-spend-list{display:flex;flex-direction:column;gap:7px}
+  .spend-item{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:8px 11px}
+  .spend-item .si-name{font-size:12.5px;color:var(--ink);font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .spend-item .si-kcal{font-size:12px;color:var(--ink-dim);font-weight:700;white-space:nowrap}
+  .bank-milestone{margin-top:11px;padding:11px 13px;border-radius:12px;
+    background:rgba(240,169,59,.1);border:1px solid rgba(240,169,59,.3);font-size:12.5px;line-height:1.5;color:var(--ink)}
+  .bank-milestone b{color:#f0a93b;font-weight:800}
+  .bank-milestone ul{margin:7px 0 0;padding-left:18px;color:var(--ink-dim)}
+  .bank-milestone li{margin:2px 0}
+  .bank-note{font-size:10.5px;color:var(--ink-faint);line-height:1.5;margin-top:11px;
+    padding-top:10px;border-top:1px solid rgba(255,255,255,.05)}
+  .predict{background:linear-gradient(160deg,#10211a,#101a18);border:1px solid #1f3b30;    border-radius:var(--r);padding:16px;margin-bottom:14px}
   .predict .label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#5fae8c}
   .predict .date{font-size:28px;margin:4px 0 2px;color:var(--goal)}
   .predict .rate{font-size:13px;color:var(--ink-dim)}
@@ -379,21 +587,35 @@
   .conn-text{color:var(--ink);font-size:15px;font-weight:600}
   @keyframes spin{to{transform:rotate(360deg)}}
   /* ===== tabs ===== */
-  body{padding-bottom:86px}
+  body{padding-bottom:92px}
   .tabview{animation:fadeTab .25s ease}
   @keyframes fadeTab{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .tabbar{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 12px);
-    max-width:460px;margin:0 auto;background:rgba(22,30,38,.96);backdrop-filter:blur(18px);
-    border:1px solid rgba(255,255,255,.06);border-radius:26px;
-    box-shadow:0 8px 28px rgba(0,0,0,.42);display:flex;align-items:center;z-index:40;
-    padding:7px 8px;gap:2px}
+  .navwrap{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 12px);
+    max-width:480px;margin:0 auto;display:flex;align-items:center;gap:10px;z-index:40}
+  .tabbar{flex:1;background:rgba(22,30,38,.96);backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.06);border-radius:24px;
+    box-shadow:0 8px 28px rgba(0,0,0,.42);display:flex;align-items:center;
+    padding:5px 6px;gap:1px}
   .tab{flex:1;background:none;border:none;color:#6b7a89;display:flex;flex-direction:column;
-    align-items:center;gap:3px;padding:6px 2px;cursor:pointer;border-radius:16px;transition:color .2s}
-  .tab svg{width:20px;height:20px}
-  .tab span{font-size:9.5px;font-weight:700;letter-spacing:.02em}
+    align-items:center;gap:2px;padding:5px 1px;cursor:pointer;border-radius:14px;transition:color .2s}
+  .tab svg{width:18px;height:18px}
+  .tab span{font-size:8.5px;font-weight:700;letter-spacing:.02em}
   .tab.act{color:var(--ink)}
   .tab.act svg{stroke:var(--goal)}
   .tab:active{opacity:.7}
+  /* detached circular AI chat button — Whoop-style floating, with glow ring */
+  .aifab{flex-shrink:0;width:54px;height:54px;border-radius:50%;cursor:pointer;
+    background:rgba(22,30,38,.96);backdrop-filter:blur(18px);
+    border:1.5px solid transparent;
+    background-image:linear-gradient(rgba(22,30,38,.96),rgba(22,30,38,.96)),
+      linear-gradient(135deg,var(--goal),#38c7e1);
+    background-origin:border-box;background-clip:padding-box,border-box;
+    box-shadow:0 8px 28px rgba(0,0,0,.42),0 0 16px rgba(62,225,154,.32);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+    transition:transform .15s}
+  .aifab svg{width:21px;height:21px;color:var(--goal)}
+  .aifab .aifab-lab{font-size:8px;font-weight:800;letter-spacing:.04em;color:var(--ink-dim)}
+  .aifab:active{transform:scale(.93)}
   /* trend cards */
   .trend-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:14px}
   .trend-title{font-size:14px;font-weight:700;color:var(--ink)}
@@ -411,8 +633,46 @@
   .wstat-num{font-size:24px;font-weight:800;line-height:1}
   .wstat-lab{font-size:11px;color:var(--ink-faint);margin-top:5px;text-transform:uppercase;letter-spacing:.04em}
   .week-report{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:12px}
-  .week-report-head{font-size:13px;font-weight:700;color:var(--goal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .week-report-head{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);font-weight:700;margin-bottom:11px;display:flex;align-items:center;gap:8px}
+  .week-report-head .coach-ai{margin:0}
   .week-report-body{font-size:14px;line-height:1.6;color:var(--ink)}
+  /* monthly calendar */
+  .cal-wrap{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 15px 16px;margin-top:14px}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+  .cal-title{font-size:15px;font-weight:800}
+  .cal-nav{width:32px;height:32px;border-radius:9px;background:var(--bg);border:1px solid var(--line);
+    color:var(--ink-dim);font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center}
+  .cal-nav:active{transform:scale(.94);border-color:var(--goal)}
+  .cal-nav:disabled{opacity:.3;cursor:default}
+  .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:5px}
+  .cal-dow span{text-align:center;font-size:10px;font-weight:700;color:var(--ink-faint);text-transform:uppercase}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-cell{aspect-ratio:1;border:none;border-radius:10px;background:var(--bg);color:var(--ink-dim);
+    font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    position:relative;font-variant-numeric:tabular-nums}
+  .cal-cell.empty{background:none;cursor:default}
+  .cal-cell.future{opacity:.32;cursor:default}
+  .cal-cell.logged{background:rgba(62,225,154,.16);color:var(--ink);border:1px solid rgba(62,225,154,.4)}
+  .cal-cell.today{outline:2px solid var(--goal);outline-offset:-2px;color:var(--ink)}
+  .cal-cell.sel{background:var(--goal);color:#08130d;font-weight:800}
+  .cal-cell:not(.empty):not(.future):active{transform:scale(.93)}
+  .cal-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-faint);margin-top:12px}
+  .cal-dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .cal-dot.logged{background:rgba(62,225,154,.6);border:1px solid rgba(62,225,154,.5)}
+  .cal-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .cal-detail-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .cal-detail-date{font-size:14px;font-weight:800}
+  .cal-detail-tot{font-size:13px;font-weight:700;color:var(--goal)}
+  .cal-meal{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12.5px;
+    color:var(--ink-dim);padding:6px 0;border-top:1px solid rgba(255,255,255,.04)}
+  .cal-meal:first-of-type{border-top:none}
+  .cal-meal .cm-k{font-weight:700;color:var(--ink-dim);white-space:nowrap}
+  .cal-meal .cm-x{color:var(--ink-faint);cursor:pointer;padding:2px 6px;font-size:13px}
+  .cal-meal .cm-x:active{color:var(--warn)}
+  .cal-empty-note{font-size:12.5px;color:var(--ink-faint);line-height:1.5;margin-bottom:11px}
+  .cal-add{width:100%;background:var(--panel2);border:1px dashed var(--line);color:var(--ink);
+    font-size:13px;font-weight:700;padding:11px;border-radius:11px;cursor:pointer}
+  .cal-add:active{border-color:var(--goal);color:var(--goal)}
 </style>
 </head>
 <body>
@@ -437,15 +697,12 @@
       </div>
     </div>
     <div class="head-actions">
-      <button class="conn-chip" id="connBtn" aria-label="Connect Whoop">
-        <span class="dot off" id="connDot"></span><span id="connTxt">Connect</span>
+      <button class="profile-btn" id="profileBtn" aria-label="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <span class="profile-dot off" id="profileDot"></span>
       </button>
     </div>
   </header>
-
-  <div class="conn-row">
-    <div class="ai-pill" id="aiPill"><span id="aiPillTxt">No AI key</span></div>
-  </div>
 
   <!-- ===== TODAY TAB ===== -->
   <div class="tabview" id="view-today">
@@ -465,10 +722,25 @@
     </div>
   </div>
 
+  <div class="recovcard" id="recovCard" style="display:none">
+    <div class="rc-head"><span class="rc-pip" id="recovPip"></span><span id="recovTitle">Recovery</span></div>
+    <div class="rc-body" id="recovBody">—</div>
+    <div class="rc-foods" id="recovFoods" style="display:none"></div>
+  </div>
+
   <div class="coach" id="coachCard">
     <span class="coach-ai">AI</span>
     <div class="coach-txt" id="coachTxt">Your daily coach appears here once Whoop's connected and you've logged a meal or weigh-in.</div>
   </div>
+
+  <button class="homebank" id="homeBank" style="display:none">
+    <div class="homebank-l">
+      <div class="homebank-lab">Calorie Bank</div>
+      <div class="homebank-bal"><span id="homeBankBal">0</span> <span class="homebank-u">kcal banked</span></div>
+      <div class="homebank-msg" id="homeBankMsg"></div>
+    </div>
+    <span class="homebank-chev">›</span>
+  </button>
 
   <div class="grade" id="gradeCard" style="display:none">
     <div class="grade-badge" id="gradeBadge">—</div>
@@ -530,12 +802,21 @@
         <div class="m-barrow"><span class="m-bar"><i class="m-fill" id="fibBar"></i><i class="m-over" id="fibOver"></i></span><span class="m-pct" id="fibPct">0%</span></div>
       </div>
     </div>
+    <div class="sugarcard">
+      <div class="m2-top"><span class="m2-lab"><span class="pip" id="sugDot" style="background:#e88fb8"></span>Sugar</span><span class="m2-val num"><span id="sugEaten">0</span> / <span id="sugTarget">—</span>g</span></div>
+      <div class="m-barrow"><span class="m-bar"><i class="m-fill" id="sugBar"></i><i class="m-over" id="sugOver"></i></span><span class="m-pct" id="sugPct">0%</span></div>
+      <div class="m-sub"><span class="ctag" id="sugTag">—</span></div>
+    </div>
     <div class="meta" id="intakeMeta">Whoop burn minus a deficit — eat to this to lose</div>
 
     <div class="foodlog" id="foodlog"></div>
     <button class="snap" id="addFoodBtn">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add food
+    </button>
+    <button class="askbtn" id="askBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      Ask about your day
     </button>
     <input type="file" id="foodFile" accept="image/*" capture="environment" hidden>
   </div>
@@ -562,6 +843,23 @@
 
   <!-- ===== TRENDS TAB ===== -->
   <div class="tabview" id="view-trends" style="display:none">
+    <div class="bank" id="bankCard">
+      <div class="bank-top">
+        <div class="bank-label">Calorie Bank</div>
+        <div class="bank-tier" id="bankTier"></div>
+      </div>
+      <div class="bank-bal"><span class="num" id="bankBal">0</span><span class="bank-unit">kcal banked</span></div>
+      <div class="bank-next" id="bankNext"></div>
+      <div class="bank-track"><div class="bank-fill" id="bankFill"></div></div>
+      <div class="bank-pace" id="bankPace"></div>
+      <div class="bank-spend" id="bankSpend" style="display:none">
+        <div class="bank-spend-head">You could spend up to <b id="spendAmt">0</b> kcal on a treat right now — without stalling your goal.</div>
+        <div class="bank-spend-list" id="spendList"></div>
+      </div>
+      <div class="bank-milestone" id="bankMilestone" style="display:none"></div>
+      <div class="bank-note">A cumulative estimate of fat-loss progress — not guaranteed weight loss. Banked flexibility is yours to spend on a treat or spread over a few days.</div>
+    </div>
+
     <div class="predict" id="predictCard">
       <div class="label">Projected goal · <span id="goalW">—</span> kg</div>
       <div class="date num" id="goalDate">—</div>
@@ -600,31 +898,109 @@
     </div>
     <div class="week-stats" id="weekStats"></div>
     <div class="week-report" id="weekReport">
-      <div class="week-report-head">Weekly summary <span class="enough-ai">AI</span></div>
+      <div class="week-report-head"><span class="coach-ai">AI</span> Weekly summary</div>
       <div class="week-report-body" id="weekReportBody">Log a few days this week and your summary will appear here.</div>
     </div>
     <button class="ghost" id="refreshWeek" style="margin-top:4px">Refresh summary</button>
+
+    <div class="cal-wrap">
+      <div class="cal-head">
+        <button class="cal-nav" id="calPrev" aria-label="Previous month">‹</button>
+        <div class="cal-title" id="calTitle">—</div>
+        <button class="cal-nav" id="calNext" aria-label="Next month">›</button>
+      </div>
+      <div class="cal-dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend"><span class="cal-dot logged"></span> logged a day &nbsp;·&nbsp; tap any day to view or add</div>
+      <div class="cal-detail" id="calDetail" style="display:none"></div>
+    </div>
   </div><!-- /view-weekly -->
 
-  <!-- bottom tab bar (Whoop-style floating pill) -->
-  <nav class="tabbar">
-    <button class="tab act" data-tab="today">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
-      <span>Today</span>
+  <!-- ===== PROFILE TAB ===== -->
+  <div class="tabview" id="view-profile" style="display:none">
+    <div class="prof-hero">
+      <button class="prof-av" id="profAv" aria-label="Change profile photo">
+        <svg class="prof-av-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <span class="prof-av-cam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+      </button>
+      <button class="prof-hero-txt" id="profNameEdit" aria-label="Edit name">
+        <div class="prof-name" id="profName">Your profile</div>
+        <div class="prof-sub" id="profSub">Tap to add your name</div>
+      </button>
+    </div>
+    <input type="file" id="avatarFile" accept="image/*" hidden>
+
+    <div class="prof-card">
+      <div class="prof-card-head">WHOOP</div>
+      <div class="prof-conn">
+        <div class="prof-conn-state">
+          <span class="prof-conn-dot off" id="profConnDot"></span>
+          <div>
+            <div class="prof-conn-title" id="profConnTitle">Not connected</div>
+            <div class="prof-conn-sub" id="profConnSub">Connect to use your real daily burn and recovery</div>
+          </div>
+        </div>
+        <button class="prof-btn" id="profConnBtn">Connect</button>
+      </div>
+    </div>
+
+    <div class="prof-card">
+      <div class="prof-card-head">AI · Gemini</div>
+      <div class="prof-conn">
+        <div class="prof-conn-state">
+          <span class="prof-conn-dot off" id="profAiDot"></span>
+          <div>
+            <div class="prof-conn-title" id="profAiTitle">No AI key</div>
+            <div class="prof-conn-sub">Powers photo logging, coach &amp; chat — free, your own key</div>
+          </div>
+        </div>
+        <button class="prof-btn" id="profAiBtn">Add key</button>
+      </div>
+    </div>
+
+    <div class="prof-card">
+      <div class="prof-card-head">Your numbers</div>
+      <div class="prof-nums" id="profNums"></div>
+      <button class="prof-edit" id="profEditNums">Edit my numbers</button>
+    </div>
+
+    <div class="prof-card">
+      <div class="prof-card-head">Data</div>
+      <p class="prof-note">Everything stays on this device. Back up to a file you can keep, or restore it on another device.</p>
+      <div class="prof-actions">
+        <button class="prof-btn alt" id="profBackup">Back up my data</button>
+        <button class="prof-btn alt" id="profRestore">Restore from file</button>
+      </div>
+      <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+      <a href="#" class="prof-link" id="profPrivacy">Privacy policy</a>
+    </div>
+  </div><!-- /view-profile -->
+
+  <!-- bottom navigation (Whoop-style): compact pill + detached circular AI button -->
+  <div class="navwrap">
+    <nav class="tabbar">
+      <button class="tab act" data-tab="today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+        <span>Today</span>
+      </button>
+      <button class="tab" data-tab="trends">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v17a1 1 0 0 0 1 1h17"/><path d="m7 14 3.5-3.5 3 3L20 7"/></svg>
+        <span>Trends</span>
+      </button>
+      <button class="tab" data-tab="weekly">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3.5 9.5h17"/></svg>
+        <span>Weekly</span>
+      </button>
+      <button class="tab" id="settingsTabBtn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+    <button class="aifab" id="aiFab" aria-label="AI Chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <span class="aifab-lab">AI</span>
     </button>
-    <button class="tab" data-tab="trends">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v17a1 1 0 0 0 1 1h17"/><path d="m7 14 3.5-3.5 3 3L20 7"/></svg>
-      <span>Trends</span>
-    </button>
-    <button class="tab" data-tab="weekly">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3.5 9.5h17"/></svg>
-      <span>Weekly</span>
-    </button>
-    <button class="tab" id="settingsTabBtn" aria-label="Settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      <span>Settings</span>
-    </button>
-  </nav>
+  </div>
 
   <footer class="credit">
     Powered by <span id="poweredBy">Gemini</span>
@@ -697,6 +1073,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <div><b>Type a food</b><span>Name it, e.g. Milo 3-in-1 or teh tarik</span></div>
       </button>
+      <button class="method" data-m="manual">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        <div><b>Enter it myself</b><span>Type the calories — no AI, no internet</span></div>
+      </button>
     </div>
     <button class="ghost" id="closeMethod">Cancel</button>
   </div>
@@ -712,6 +1092,69 @@
     <button class="save" id="searchGo">Find it</button>
     <div id="searchResults"></div>
     <button class="ghost" id="closeSearch" style="margin-top:10px">Cancel</button>
+  </div>
+
+  <!-- manual entry sheet — zero AI, fully offline safety net -->
+  <div class="sheet" id="manualSheet">
+    <h2>Enter it myself</h2>
+    <p class="s">Type what you know. Calories are all that's required — the rest is optional.</p>
+    <div class="adj-field"><label>Name</label><input type="text" id="manName" placeholder="e.g. Mum's nasi goreng"></div>
+    <div class="adj-grid">
+      <div class="adj-field"><label>Calories</label><input type="number" inputmode="numeric" id="manKcal" placeholder="0"></div>
+      <div class="adj-field"><label>Protein (g)</label><input type="number" inputmode="numeric" id="manP" placeholder="0"></div>
+      <div class="adj-field"><label>Carbs (g)</label><input type="number" inputmode="numeric" id="manC" placeholder="0"></div>
+      <div class="adj-field"><label>Fat (g)</label><input type="number" inputmode="numeric" id="manF" placeholder="0"></div>
+      <div class="adj-field"><label>Fibre (g)</label><input type="number" inputmode="numeric" id="manFb" placeholder="0"></div>
+      <div class="adj-field"><label>Sugar (g)</label><input type="number" inputmode="numeric" id="manSg" placeholder="0"></div>
+    </div>
+    <button class="save" id="manualGo">Log it</button>
+    <button class="ghost" id="closeManual" style="margin-top:10px">Cancel</button>
+  </div>
+
+  <!-- backfill sheet — add food/calories to a past day -->
+  <div class="sheet" id="backfillSheet">
+    <h2 id="bfTitle">Add for this day</h2>
+    <p class="s">Quick entry for a day you missed. Calories are all that's required.</p>
+    <div class="adj-field"><label>Name</label><input type="text" id="bfName" placeholder="e.g. Lunch"></div>
+    <div class="adj-grid">
+      <div class="adj-field"><label>Calories</label><input type="number" inputmode="numeric" id="bfKcal" placeholder="0"></div>
+      <div class="adj-field"><label>Protein (g)</label><input type="number" inputmode="numeric" id="bfP" placeholder="0"></div>
+      <div class="adj-field"><label>Carbs (g)</label><input type="number" inputmode="numeric" id="bfC" placeholder="0"></div>
+      <div class="adj-field"><label>Fat (g)</label><input type="number" inputmode="numeric" id="bfF" placeholder="0"></div>
+      <div class="adj-field"><label>Fibre (g)</label><input type="number" inputmode="numeric" id="bfFb" placeholder="0"></div>
+      <div class="adj-field"><label>Sugar (g)</label><input type="number" inputmode="numeric" id="bfSg" placeholder="0"></div>
+    </div>
+    <button class="save" id="bfGo">Add it</button>
+    <button class="ghost" id="closeBackfill" style="margin-top:10px">Cancel</button>
+  </div>
+
+  <!-- My Meals library — saved meals, favourites, manage -->
+  <div class="sheet" id="mealsSheet">
+    <h2>My Meals</h2>
+    <p class="s">Everything you've logged before. Tap to log it again — favourites stay pinned to the top.</p>
+    <div class="mealsbar">
+      <div class="seg">
+        <button class="seg-btn on" id="segAll" data-f="all">All</button>
+        <button class="seg-btn" id="segFav" data-f="fav">★ Favourites</button>
+      </div>
+    </div>
+    <div id="mealsList"></div>
+    <button class="ghost" id="closeMeals">Done</button>
+  </div>
+
+  <!-- diet chat sheet — hybrid: live-data answers free, AI for novel questions -->
+  <div class="sheet" id="chatSheet">
+    <h2>Ask about your day</h2>
+    <p class="s">Quick questions about today answer instantly from your data. Anything else checks with AI for a tailored answer.</p>
+    <div id="chatLog" class="chatlog"></div>
+    <div class="chatchips" id="chatChips"></div>
+    <div class="chatbar">
+      <input type="text" id="chatInput" placeholder="e.g. how much protein do I have left?" autocomplete="off">
+      <button class="chatsend" id="chatSend" aria-label="Send">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
+    <button class="ghost" id="closeChat" style="margin-top:10px">Close</button>
   </div>
 
   <!-- barcode scanner sheet -->
@@ -753,6 +1196,18 @@
     <button class="ghost" id="nameCancel" style="margin-top:10px">Cancel</button>
   </div>
 
+  <!-- profile name edit modal (in-theme, replaces prompt) -->
+  <div class="sheet" id="pnameSheet">
+    <h2>Your name</h2>
+    <p class="s">This stays on this device. Used to personalise your profile.</p>
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="pnameIn" placeholder="e.g. Alif" autocomplete="off" autocapitalize="words">
+    </div>
+    <button class="save" id="pnameSave">Save</button>
+    <button class="ghost" id="pnameCancel" style="margin-top:10px">Cancel</button>
+  </div>
+
   <!-- connecting overlay -->
   <div class="connecting" id="connecting">
     <div class="connecting-card">
@@ -769,7 +1224,7 @@ const KEY='leanday.v1';
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
 const save=s=>localStorage.setItem(KEY,JSON.stringify(s));
 let S=Object.assign({sex:'m',height:null,age:null,goal:null,months:null,deficit:500,
-  weights:[],connected:false,meals:[],water:null,grade:null,deviceId:null,aiKey:''},load());
+  weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null},load());
 // migrate any old per-provider Gemini key to the single key
 if(!S.aiKey && S.aiKeys && S.aiKeys.gemini){ S.aiKey=S.aiKeys.gemini; delete S.aiKeys; save(S); }
 function curKey(){ return S.aiKey||''; }
@@ -782,16 +1237,16 @@ function curKey(){ return S.aiKey||''; }
 function todayMeals(){ const d=new Date(); d.setHours(0,0,0,0);
   return (S.meals||[]).filter(m=>m.t>=d.getTime()); }
 function eaten(){ return todayMeals().reduce((a,m)=>({
-  kcal:a.kcal+m.kcal, p:a.p+m.p, c:a.c+m.c, f:a.f+(m.f||0), fb:a.fb+(m.fb||0)}),
-  {kcal:0,p:0,c:0,f:0,fb:0}); }
+  kcal:a.kcal+m.kcal, p:a.p+m.p, c:a.c+m.c, f:a.f+(m.f||0), fb:a.fb+(m.fb||0), sg:a.sg+(m.sg||0)}),
+  {kcal:0,p:0,c:0,f:0,fb:0,sg:0}); }
 
 function yesterdayMeals(){
   const s=new Date(); s.setHours(0,0,0,0); const start=s.getTime()-86400000;
   return (S.meals||[]).filter(m=>m.t>=start && m.t<s.getTime());
 }
 function sumMacros(meals){ return meals.reduce((a,m)=>({
-  kcal:a.kcal+m.kcal, p:a.p+m.p, c:a.c+m.c, f:a.f+(m.f||0), fb:a.fb+(m.fb||0)}),
-  {kcal:0,p:0,c:0,f:0,fb:0}); }
+  kcal:a.kcal+m.kcal, p:a.p+m.p, c:a.c+m.c, f:a.f+(m.f||0), fb:a.fb+(m.fb||0), sg:a.sg+(m.sg||0)}),
+  {kcal:0,p:0,c:0,f:0,fb:0,sg:0}); }
 
 /* water intake — reset daily; store ml drunk today + a log for undo */
 function waterKeyToday(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
@@ -845,8 +1300,8 @@ async function aiText(prompt,maxTok=200){
   return gj.candidates[0].content.parts.map(p=>p.text||'').join('');
 }
 
-const MEAL_PROMPT=`You are a professional nutritionist estimating a meal from a photo. Work step by step internally: (1) identify every distinct food and drink item, (2) for each, estimate the portion as weight in grams or volume in ml using visual cues like plate size, utensils and hand-scale, (3) only then compute calories and macros from that portion. Portion sizes are usually underestimated, so lean realistic, not small. Assume a typical single serving only when the photo gives no scale cues. Respond with ONLY valid JSON, no prose, no markdown:
-{"dish":"short name","items":[{"food":"item","portion":"e.g. ~180g / 1.5 cups","kcal":0,"protein_g":0,"carb_g":0}],"total":{"kcal":0,"protein_g":0,"carb_g":0,"fat_g":0,"fiber_g":0},"confidence":"high|medium|low","assumptions":"one short sentence on portion assumptions"}`;
+const MEAL_PROMPT=`You are a professional nutritionist estimating a meal from a photo. Work step by step internally: (1) identify EVERY distinct component on the plate — main dishes, rice/carbs, every side, vegetables, garnishes, condiments and sauces (e.g. sambal, kicap, mayo, chilli, gravy, kuah, dressing, butter, syrup), and any drink. Small extras still add calories, so list them separately rather than lumping them in. (2) For each, estimate the portion as weight in grams or volume in ml using visual cues like plate size, utensils and hand-scale. (3) Only then compute calories and macros from that portion. Portion sizes are usually underestimated, so lean realistic, not small. Assume a typical single serving only when the photo gives no scale cues. Respond with ONLY valid JSON, no prose, no markdown:
+{"dish":"short name","items":[{"food":"item","portion":"e.g. ~180g / 1.5 cups","kcal":0,"protein_g":0,"carb_g":0,"fat_g":0,"fiber_g":0,"sugar_g":0}],"total":{"kcal":0,"protein_g":0,"carb_g":0,"fat_g":0,"fiber_g":0,"sugar_g":0},"confidence":"high|medium|low","assumptions":"one short sentence on portion assumptions"}`;
 
 async function aiEstimateMeal(base64,media){
   const txt=await aiVision(base64,media,MEAL_PROMPT,1000);
@@ -856,13 +1311,13 @@ async function aiEstimateMeal(base64,media){
 /* ---------- non-photo food sources ---------- */
 /* Open Food Facts: free, no key. Barcode lookup + name search. */
 async function offBarcode(code){
-  const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,brands,nutriments,serving_size`);
+  const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,brands,categories_tags,nutriments,serving_size,nutriscore_grade`);
   const d=await r.json();
   if(d.status!==1 || !d.product) return null;
   return offToItem(d.product);
 }
 async function offSearch(term){
-  const r=await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(term)}&search_simple=1&action=process&json=1&page_size=12&fields=product_name,brands,nutriments,serving_size`);
+  const r=await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(term)}&search_simple=1&action=process&json=1&page_size=12&fields=product_name,brands,categories_tags,nutriments,serving_size,nutriscore_grade`);
   const d=await r.json();
   return (d.products||[]).map(offToItem).filter(x=>x && x.kcal>0);
 }
@@ -875,10 +1330,106 @@ function offToItem(p){
   const carb = Math.round((perServ? n['carbohydrates_serving'] : n['carbohydrates_100g'])||0);
   const fat  = Math.round((perServ? n['fat_serving'] : n['fat_100g'])||0);
   const fiber= Math.round((perServ? n['fiber_serving'] : n['fiber_100g'])||0);
+  const sugar= Math.round((perServ? n['sugars_serving'] : n['sugars_100g'])||0);
   if(!kcal) return null;
   return {dish:(p.product_name||'Product').trim(), brand:(p.brands||'').split(',')[0].trim(),
     basis: perServ? (p.serving_size||'per serving') : 'per 100g',
-    kcal, protein_g:prot, carb_g:carb, fat_g:fat, fiber_g:fiber};
+    kcal, protein_g:prot, carb_g:carb, fat_g:fat, fiber_g:fiber, sugar_g:sugar,
+    // per-100g snapshot + grade for rule-based coaching (independent of serving size)
+    per100:{ sugar:n['sugars_100g'], sat:n['saturated-fat_100g'], salt:n['salt_100g'],
+             energy:n['energy-kcal_100g'], fiber:n['fiber_100g'], protein:n['proteins_100g'] },
+    grade:(p.nutriscore_grade||'').toLowerCase(),
+    cats:(p.categories_tags||[])};
+}
+
+/* ---------- Smart barcode coaching (rule-based first, AI swaps cached) ----------
+   Tone: supportive coach. An occasional treat is fine; we only flag daily habits.
+   Verdict tiers: good / ok / treat. Plus a like-for-like swap when one helps. */
+const SWAP_TABLE=[
+  // match on name keywords → suggested healthier like-for-like
+  {match:['coca-cola','coca cola','coke','pepsi','100 plus','100plus','sprite','fanta','f&n','soda','soft drink','cola'],
+   swap:'the zero-sugar version (Coke Zero, Pepsi Black, 100 Plus Zero)', why:'same fizz and taste, none of the sugar'},
+  {match:['milo','horlicks','ovaltine'],
+   swap:'Milo with less condensed milk, or the "Less Sugar" tin', why:'keeps the chocolate-malt hit with a smaller sugar load'},
+  {match:['kit kat','kitkat','snickers','mars','twix','cadbury','chocolate bar'],
+   swap:'a smaller "fun size", or dark chocolate (70%+)', why:'satisfies the craving with less sugar per gram'},
+  {match:['potato chips','crisps','mister potato','pringles','twisties','cheezels'],
+   swap:'baked crisps or a small handful of nuts', why:'crunch and salt with more protein, less seed oil'},
+  {match:['instant noodle','maggi','indomie','mi goreng','cup noodle'],
+   swap:'a wholemeal or "less salt" variant, and skip half the seasoning', why:'cuts the sodium hit that drives water retention'},
+  {match:['ice cream','wall\'s','walls','magnum','cornetto'],
+   swap:'a single scoop or a yoghurt-based lolly', why:'same treat, smaller portion of sugar and fat'},
+  {match:['white bread','gardenia','massimo classic'],
+   swap:'wholemeal or multigrain bread', why:'more fibre, gentler on blood sugar'},
+  {match:['fruit juice','juice drink','ribena','peel fresh'],
+   swap:'whole fruit or sparkling water with lime', why:'the fibre in whole fruit blunts the sugar spike'},
+  {match:['energy drink','red bull','monster','livita'],
+   swap:'black coffee or kopi O kosong', why:'the caffeine without the sugar and additives'},
+  {match:['biscuit','cookie','oreo','tiger','hup seng'],
+   swap:'oat biscuits or a couple of dates', why:'more fibre and a slower energy release'},
+  {match:['flavoured yogurt','flavoured yoghurt','yogurt drink','vitagen','yakult'],
+   swap:'plain Greek yoghurt with fresh fruit', why:'double the protein, a fraction of the added sugar'},
+];
+function findSwap(name){
+  const n=(name||'').toLowerCase();
+  return SWAP_TABLE.find(s=>s.match.some(m=>n.includes(m)))||null;
+}
+/* Rule-based verdict from per-100g nutrition (UK traffic-light thresholds, drinks scaled). */
+function coachVerdict(item){
+  const p=item.per100||{}, name=(item.dish||'').toLowerCase();
+  const isDrink=(item.cats||[]).some(c=>/beverage|drink|soda|juice|water/.test(c)) ||
+    /drink|juice|soda|cola|tea|coffee|milo|water/.test(name);
+  const sugar=p.sugar, sat=p.sat, salt=p.salt, fib=p.fiber, prot=p.protein;
+  let score=0; const flags=[]; const wins=[];
+  // sugar (drinks judged tighter)
+  if(sugar!=null){
+    const hi=isDrink?7.5:22.5, mid=isDrink?2.5:5;
+    if(sugar>=hi){ score+=2; flags.push(`high in sugar (${Math.round(sugar)}g/100${isDrink?'ml':'g'})`); }
+    else if(sugar>mid){ score+=1; }
+    else { wins.push('low in sugar'); }
+  }
+  if(sat!=null){ if(sat>=5){ score+=2; flags.push(`high in saturated fat`); } else if(sat>1.5){ score+=1; } else { wins.push('low in saturated fat'); } }
+  if(salt!=null){ if(salt>=1.5){ score+=2; flags.push(`high in salt`); } else if(salt>0.3){ score+=1; } }
+  if(fib!=null && fib>=3) wins.push('a good source of fibre');
+  if(prot!=null && prot>=10) wins.push('decently high in protein');
+  // nutri-score nudges the tier when present
+  const g=item.grade;
+  if(g==='a'||g==='b') score-=1;
+  if(g==='d'||g==='e') score+=1;
+  const tier = score<=0?'good' : score<=2?'ok' : 'treat';
+  return {tier, flags, wins, isDrink};
+}
+/* Build the coaching message. Rule-based always; AI only to enrich a swap, cached per barcode. */
+function coachMessage(item){
+  const v=coachVerdict(item);
+  const swap=findSwap(item.dish);
+  const head={good:'Solid choice',ok:'Fine in moderation',treat:'More of a treat'}[v.tier];
+  let body;
+  if(v.tier==='good'){
+    body = v.wins.length? `It's ${v.wins.slice(0,2).join(' and ')}. Good to keep around.`
+                        : `Nothing here raises a flag. Good to keep around.`;
+  } else if(v.tier==='ok'){
+    body = v.flags.length? `Just a bit ${v.flags[0]} — fine now and then, worth not making it a daily thing.`
+                         : `Reasonable balance. Fine as a regular if the portion stays sensible.`;
+  } else {
+    body = v.flags.length? `It's ${v.flags.slice(0,2).join(' and ')}. Totally fine as an occasional treat — the thing to watch is having it every day.`
+                         : `Best kept as an occasional treat rather than a daily habit.`;
+  }
+  return {tier:v.tier, head, body, swap};
+}
+/* cache AI-enriched swaps per barcode so we never re-spend tokens on the same product */
+function loadSwapCache(){ try{ return JSON.parse(localStorage.getItem('whoopdiet.swapCache'))||{}; }catch(e){ return {}; } }
+function saveSwapCache(c){ try{ localStorage.setItem('whoopdiet.swapCache',JSON.stringify(c)); }catch(e){} }
+async function aiSwap(item){
+  const cache=loadSwapCache(); const key=item._code||item.dish;
+  if(cache[key]) return cache[key];
+  if(!aiReady()) return null;
+  try{
+    const prompt=`A user in Malaysia scanned "${item.dish}"${item.brand?' ('+item.brand+')':''}, about ${item.sugar_g}g sugar per serving. Suggest ONE realistic like-for-like healthier swap they'd actually find in a Malaysian shop. Be supportive, not preachy — an occasional treat is fine. Respond ONLY with JSON: {"swap":"product","why":"one short reason"}`;
+    const r=parseJSON(await aiText(prompt,200));
+    if(r&&r.swap){ cache[key]={swap:r.swap,why:r.why||''}; saveSwapCache(cache); return cache[key]; }
+  }catch(e){}
+  return null;
 }
 
 /* AI text estimate — for drinks & local food a photo/database can't cover */
@@ -887,6 +1438,82 @@ async function aiEstimateText(desc){
 {"dish":"short name","kcal":0,"protein_g":0,"carb_g":0,"fat_g":0,"fiber_g":0,"confidence":"high|medium|low","assumptions":"one short sentence"}
 Item: "${desc}"`;
   return parseJSON(await aiText(prompt,400));
+}
+
+/* ---------- Malaysian food database (instant, AI-free) ----------
+   Per typical serving. sugar_g is included in carb_g. Figures are
+   reasonable Malaysia-market averages; user can Adjust before logging. */
+const MY_FOOD_DB=[
+  // — Rice & nasi —
+  {dish:'Nasi lemak (plain w/ sambal)',kcal:400,protein_g:9,carb_g:50,fat_g:18,fiber_g:3,sugar_g:6,tags:'nasi lemak rice'},
+  {dish:'Nasi lemak ayam goreng',kcal:660,protein_g:30,carb_g:62,fat_g:33,fiber_g:3,sugar_g:7,tags:'nasi lemak chicken'},
+  {dish:'Nasi goreng kampung',kcal:540,protein_g:16,carb_g:68,fat_g:22,fiber_g:4,sugar_g:6,tags:'fried rice nasi goreng'},
+  {dish:'Nasi goreng ayam',kcal:600,protein_g:24,carb_g:70,fat_g:24,fiber_g:3,sugar_g:6,tags:'fried rice chicken'},
+  {dish:'Nasi ayam (chicken rice)',kcal:580,protein_g:30,carb_g:68,fat_g:20,fiber_g:2,sugar_g:5,tags:'chicken rice hainanese'},
+  {dish:'Nasi kandar (mixed, 1 plate)',kcal:750,protein_g:32,carb_g:80,fat_g:32,fiber_g:5,sugar_g:8,tags:'nasi kandar rice'},
+  {dish:'Nasi campur (veg + 1 meat)',kcal:620,protein_g:24,carb_g:78,fat_g:22,fiber_g:6,sugar_g:7,tags:'nasi campur mixed rice'},
+  {dish:'Nasi briyani ayam',kcal:700,protein_g:28,carb_g:84,fat_g:28,fiber_g:4,sugar_g:8,tags:'briyani rice'},
+  {dish:'Nasi dagang',kcal:520,protein_g:18,carb_g:62,fat_g:22,fiber_g:3,sugar_g:7,tags:'nasi dagang rice'},
+  {dish:'Plain white rice (1 cup)',kcal:205,protein_g:4,carb_g:45,fat_g:0,fiber_g:1,sugar_g:0,tags:'rice nasi putih'},
+  // — Noodles —
+  {dish:'Char kuey teow',kcal:620,protein_g:18,carb_g:72,fat_g:28,fiber_g:3,sugar_g:8,tags:'ckt fried noodle'},
+  {dish:'Mee goreng mamak',kcal:580,protein_g:16,carb_g:78,fat_g:22,fiber_g:4,sugar_g:10,tags:'fried noodle mee'},
+  {dish:'Maggi goreng',kcal:540,protein_g:14,carb_g:70,fat_g:22,fiber_g:3,sugar_g:7,tags:'maggi instant noodle'},
+  {dish:'Wantan mee (dry)',kcal:500,protein_g:22,carb_g:64,fat_g:16,fiber_g:3,sugar_g:6,tags:'wanton noodle'},
+  {dish:'Hokkien mee (KL, dark)',kcal:600,protein_g:20,carb_g:70,fat_g:26,fiber_g:3,sugar_g:9,tags:'hokkien mee noodle'},
+  {dish:'Laksa (curry)',kcal:560,protein_g:20,carb_g:58,fat_g:26,fiber_g:4,sugar_g:8,tags:'curry laksa noodle'},
+  {dish:'Asam laksa',kcal:380,protein_g:18,carb_g:58,fat_g:7,fiber_g:4,sugar_g:9,tags:'penang asam laksa'},
+  {dish:'Pan mee (dry)',kcal:470,protein_g:20,carb_g:60,fat_g:16,fiber_g:4,sugar_g:5,tags:'pan mee noodle'},
+  {dish:'Bihun soup',kcal:330,protein_g:16,carb_g:48,fat_g:8,fiber_g:3,sugar_g:4,tags:'bihun vermicelli soup'},
+  {dish:'Mee rebus',kcal:450,protein_g:14,carb_g:66,fat_g:14,fiber_g:5,sugar_g:11,tags:'mee rebus noodle'},
+  // — Bread, roti, breakfast —
+  {dish:'Roti canai (plain)',kcal:300,protein_g:6,carb_g:38,fat_g:14,fiber_g:2,sugar_g:3,tags:'roti canai bread'},
+  {dish:'Roti telur',kcal:380,protein_g:11,carb_g:40,fat_g:19,fiber_g:2,sugar_g:3,tags:'roti telur egg'},
+  {dish:'Roti tisu',kcal:420,protein_g:6,carb_g:60,fat_g:17,fiber_g:2,sugar_g:22,tags:'roti tisu sweet'},
+  {dish:'Thosai / tosai (plain)',kcal:170,protein_g:5,carb_g:30,fat_g:4,fiber_g:2,sugar_g:2,tags:'thosai dosai'},
+  {dish:'Kaya butter toast (2 slices)',kcal:290,protein_g:7,carb_g:38,fat_g:12,fiber_g:2,sugar_g:14,tags:'kaya toast roti bakar'},
+  {dish:'Half-boiled eggs (2)',kcal:140,protein_g:12,carb_g:1,fat_g:10,fiber_g:0,sugar_g:0,tags:'half boiled egg telur'},
+  {dish:'Apam balik (1 slice)',kcal:240,protein_g:5,carb_g:36,fat_g:9,fiber_g:2,sugar_g:18,tags:'apam balik peanut'},
+  {dish:'Nasi lemak bungkus (small)',kcal:280,protein_g:6,carb_g:38,fat_g:12,fiber_g:2,sugar_g:5,tags:'nasi lemak bungkus'},
+  // — Sides, snacks, kuih —
+  {dish:'Ayam goreng (1 piece)',kcal:260,protein_g:22,carb_g:8,fat_g:16,fiber_g:0,sugar_g:1,tags:'fried chicken ayam'},
+  {dish:'Satay (per stick, chicken)',kcal:55,protein_g:5,carb_g:2,fat_g:3,fiber_g:0,sugar_g:1,tags:'satay skewer'},
+  {dish:'Curry puff (karipap)',kcal:130,protein_g:3,carb_g:15,fat_g:7,fiber_g:1,sugar_g:2,tags:'curry puff karipap'},
+  {dish:'Pisang goreng (1 pc)',kcal:120,protein_g:1,carb_g:18,fat_g:5,fiber_g:1,sugar_g:8,tags:'banana fritter pisang'},
+  {dish:'Popiah (1 roll)',kcal:180,protein_g:5,carb_g:26,fat_g:6,fiber_g:3,sugar_g:6,tags:'popiah spring roll'},
+  {dish:'Karipap / kuih (avg piece)',kcal:120,protein_g:2,carb_g:18,fat_g:5,fiber_g:1,sugar_g:8,tags:'kuih dessert'},
+  {dish:'Cendol',kcal:300,protein_g:3,carb_g:50,fat_g:10,fiber_g:2,sugar_g:36,tags:'cendol dessert'},
+  {dish:'Ais kacang / ABC',kcal:280,protein_g:4,carb_g:56,fat_g:5,fiber_g:2,sugar_g:42,tags:'abc ais kacang dessert'},
+  {dish:'Rojak buah',kcal:240,protein_g:5,carb_g:40,fat_g:7,fiber_g:5,sugar_g:24,tags:'rojak fruit'},
+  // — Drinks (sugar matters) —
+  {dish:'Teh tarik',kcal:170,protein_g:4,carb_g:26,fat_g:6,fiber_g:0,sugar_g:24,tags:'teh tarik drink milk tea'},
+  {dish:'Teh O ais (sweet)',kcal:90,protein_g:0,carb_g:23,fat_g:0,fiber_g:0,sugar_g:23,tags:'teh o iced tea'},
+  {dish:'Kopi O',kcal:60,protein_g:0,carb_g:15,fat_g:0,fiber_g:0,sugar_g:15,tags:'kopi o black coffee'},
+  {dish:'Kopi (with milk)',kcal:140,protein_g:3,carb_g:22,fat_g:5,fiber_g:0,sugar_g:20,tags:'kopi coffee milk'},
+  {dish:'Milo ais',kcal:220,protein_g:6,carb_g:36,fat_g:6,fiber_g:1,sugar_g:30,tags:'milo iced chocolate'},
+  {dish:'Sirap bandung',kcal:200,protein_g:3,carb_g:40,fat_g:4,fiber_g:0,sugar_g:38,tags:'bandung rose drink'},
+  {dish:'Limau ais (sweet)',kcal:90,protein_g:0,carb_g:23,fat_g:0,fiber_g:0,sugar_g:22,tags:'limau lime drink'},
+  {dish:'100 Plus (can 325ml)',kcal:90,protein_g:0,carb_g:22,fat_g:0,fiber_g:0,sugar_g:22,tags:'100 plus isotonic'},
+  {dish:'Kelapa / coconut water',kcal:60,protein_g:1,carb_g:14,fat_g:0,fiber_g:1,sugar_g:12,tags:'coconut kelapa'},
+];
+/* search the local DB by name/tags; returns result objects matching offToItem shape */
+function searchLocalDB(term){
+  const q=term.trim().toLowerCase();
+  if(!q) return [];
+  const words=q.split(/\s+/).filter(Boolean);
+  const scored=MY_FOOD_DB.map(f=>{
+    const hay=(f.dish+' '+(f.tags||'')).toLowerCase();
+    let score=0;
+    if(hay.includes(q)) score+=10;
+    words.forEach(w=>{ if(hay.includes(w)) score+=3; });
+    if(f.dish.toLowerCase().startsWith(q)) score+=5;
+    return {f,score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,8);
+  return scored.map(({f})=>({
+    dish:f.dish, brand:'', basis:'per serving · local',
+    kcal:f.kcal, protein_g:f.protein_g, carb_g:f.carb_g, fat_g:f.fat_g, fiber_g:f.fiber_g,
+    sugar_g:f.sugar_g, local:true
+  }));
 }
 
 /* Local drinks cheat-sheet (rough, Malaysia market). AI fills anything not here. */
@@ -996,6 +1623,7 @@ async function buildPlan(){
   const carbG = Math.round(carbKcal/4/5)*5;
 
   const plan={water,protein,carbG,fatTarget,phys,tdee,intake,deficit,flooredHit};
+  _lastPlan=plan; _lastPhys=phys;
   window._plan=plan;
   render(plan);              // note: render() also schedules the meal-suggestions call
   renderFoodLog();
@@ -1131,6 +1759,20 @@ function render({water,protein,carbG,fatTarget,phys,tdee,intake,deficit,flooredH
   document.getElementById('fibEaten').textContent=Math.round(e.fb);
   document.getElementById('fibTarget').textContent=fibTarget;
   paintBar('fibBar','fibOver','fibDot', e.fb, fibTarget, 'fibPct');
+  // sugar — WHO free-sugar guidance ~10% of energy (÷4 kcal/g), floored to a sane daily cap
+  const sugLimit=Math.max(30, Math.round(intake*0.10/4));
+  const loggedSugar=Math.round(e.sg);
+  document.getElementById('sugEaten').textContent=loggedSugar;
+  document.getElementById('sugTarget').textContent=sugLimit;
+  paintBar('sugBar','sugOver','sugDot', e.sg, sugLimit, 'sugPct');
+  // honest coverage: how many of today's meals actually carry a sugar figure
+  const tm=todayMeals(), withSug=tm.filter(m=>m.sg!=null&&m.sg>0).length;
+  const sugLeft=sugLimit-loggedSugar;
+  document.getElementById('sugTag').textContent = noMeals
+    ? `Daily limit ${sugLimit}g — roughly ${Math.round(sugLimit/4)} tsp`
+    : (sugLeft>=0
+        ? `${sugLeft}g of room left today · ~${Math.round(sugLimit/4)} tsp limit`
+        : `${Math.abs(sugLeft)}g over — ease off sweet drinks tomorrow`);
 
   // water card (separate logging UI below)
   const wt=waterToday();
@@ -1149,6 +1791,8 @@ function render({water,protein,carbG,fatTarget,phys,tdee,intake,deficit,flooredH
   setTimeout(()=>renderEnough(intake, e.kcal), 2500);
 
   renderPredict();
+  renderRecovery(phys.recovery);
+  renderHomeBank();
   // current weight + why line
   const cw=curWeight();
   document.getElementById('curW').textContent = cw? cw.toFixed(1)+' kg':'— kg';
@@ -1156,6 +1800,163 @@ function render({water,protein,carbG,fatTarget,phys,tdee,intake,deficit,flooredH
     phys.burnKcal
     ? `Your target is built from your typical Whoop burn (~${phys.burnKcal} kcal/day) minus your deficit, so it stays steady day to day. Your weight trend fine-tunes the rest.`
     : `Your target is built from your height, weight and goal. Connect Whoop so it uses your real daily burn instead of an estimate.`;
+}
+
+/* ---------- Recovery nutrition (advice only — targets stay fixed) ----------
+   WHOOP recovery bands: green ≥67, yellow 34–66, red ≤33.
+   Guidance is rule-based and grounded in mainstream sports-nutrition consensus,
+   not bro-science. Targets are NOT adjusted — the user owns their deficit. */
+function recoveryBand(r){
+  if(r==null) return 'unknown';
+  if(r>=67) return 'green';
+  if(r>=34) return 'yellow';
+  return 'red';
+}
+const RECOVERY_GUIDANCE={
+  green:{
+    title:'Recovery · Green',
+    body:'Your body\'s well recovered. Stick to your plan — eat to your target, hit your protein, and keep hydration steady.',
+    foods:null
+  },
+  yellow:{
+    title:'Recovery · Yellow',
+    body:'Recovery is moderate. Prioritise protein to support repair and keep hydration steady through the day. No need to change your calorie target.',
+    foods:'Helpful today: <b>protein at each meal</b> (eggs, chicken, fish, tofu, dairy) and <b>water with electrolytes</b> if you sweat a lot.'
+  },
+  red:{
+    title:'Recovery · Red',
+    body:'Recovery is low — your body is under strain. Keep eating to your target (don\'t under-fuel a tired body), lean on quality carbs and protein, and hydrate more than usual.',
+    foods:'Supportive foods: <b>quality carbs</b> (rice, oats, sweet potato, fruit) to refill glycogen, <b>protein</b> for repair, and <b>magnesium-rich foods</b> — spinach, pumpkin seeds, nuts, beans, dark chocolate — which support muscle and sleep. Extra <b>water + electrolytes</b> helps the bounce-back.'
+  }
+};
+function renderRecovery(r){
+  const card=$('recovCard'); if(!card) return;
+  // only show when Whoop is connected and we actually have a recovery number
+  if(!Whoop.connected() || r==null){ card.style.display='none'; return; }
+  const band=recoveryBand(r);
+  const g=RECOVERY_GUIDANCE[band]; if(!g){ card.style.display='none'; return; }
+  card.className='recovcard '+band;
+  card.style.display='block';
+  $('recovTitle').textContent=`${g.title} · ${r}%`;
+  $('recovBody').textContent=g.body;
+  const foods=$('recovFoods');
+  if(g.foods){ foods.style.display='block'; foods.innerHTML=g.foods; }
+  else { foods.style.display='none'; foods.innerHTML=''; }
+}
+
+/* ---------- Diet chat (hybrid: live-data rules first, AI for novel) ---------- */
+let _lastPlan=null, _lastPhys=null;   // render()/buildPlan() stash current plan + whoop data for chat
+const CHAT_CHIPS=['Protein left?','Calories left?','How am I doing on sugar?','What should I eat next?'];
+/* Build a snapshot of the user's live day for both rule answers and the AI prompt. */
+function chatContext(){
+  const e=eaten(), p=_lastPlan||{};
+  const tm=todayMeals();
+  const phys=_lastPhys||{};
+  const sugLimit=p.intake? Math.max(30,Math.round(p.intake*0.10/4)):null;
+  return {
+    intake:p.intake, eaten:Math.round(e.kcal), left:p.intake!=null?Math.round(p.intake-e.kcal):null,
+    protein_target:p.protein, protein_eaten:Math.round(e.p),
+    carbs_eaten:Math.round(e.c), fat_eaten:Math.round(e.f), fibre_eaten:Math.round(e.fb),
+    sugar_eaten:Math.round(e.sg), sugar_limit:sugLimit,
+    meals_logged:tm.length, recovery:phys.recovery!=null?phys.recovery:null,
+    recovery_band:phys.recovery!=null?recoveryBand(phys.recovery):null
+  };
+}
+/* Rule-based answers for the common questions. Returns a string, or null if not handled. */
+function chatRuleAnswer(q){
+  const c=chatContext(); const s=q.toLowerCase();
+  const has=(...ws)=>ws.some(w=>s.includes(w));
+  if(c.intake==null) return null; // no plan yet; let AI/empty handle
+  // protein
+  if(has('protein')){
+    if(c.protein_target==null) return null;
+    const left=c.protein_target-c.protein_eaten;
+    return left>0
+      ? `You've had ${c.protein_eaten}g of protein and your target is ${c.protein_target}g — about ${left}g to go. A palm-sized portion of chicken, fish or tofu, or some Greek yoghurt, closes that nicely.`
+      : `You're at ${c.protein_eaten}g protein, already past your ${c.protein_target}g target. Nicely done — no need to force more in.`;
+  }
+  // calories / budget
+  if(has('calorie','kcal','budget','how much can i eat','left to eat','eat more')){
+    if(c.left==null) return null;
+    return c.left>=0
+      ? `You've eaten ${c.eaten} of your ${c.intake} kcal target — ${c.left} kcal left for today.`
+      : `You're ${Math.abs(c.left)} kcal over your ${c.intake} target. Not a disaster — just ease back tomorrow and keep the deficit honest.`;
+  }
+  // sugar
+  if(has('sugar','sweet')){
+    if(c.sugar_limit==null) return null;
+    const left=c.sugar_limit-c.sugar_eaten;
+    return left>=0
+      ? `You're at about ${c.sugar_eaten}g of sugar today, under your ${c.sugar_limit}g guide — ${left}g of room left. (Only meals with a sugar value count here.)`
+      : `You're around ${c.sugar_eaten}g sugar, over the ~${c.sugar_limit}g guide. Worth easing off sweet drinks for the rest of the day.`;
+  }
+  // how am i doing (general status)
+  if(has('how am i doing','how is my day','status','summary','so far')){
+    const bits=[`${c.eaten}/${c.intake} kcal`,`${c.protein_eaten}/${c.protein_target||'—'}g protein`];
+    if(c.sugar_limit) bits.push(`${c.sugar_eaten}g sugar`);
+    return `So far today: ${bits.join(', ')}, across ${c.meals_logged} meal${c.meals_logged===1?'':'s'}. ${c.left>=0?`${c.left} kcal still to play with.`:`${Math.abs(c.left)} kcal over — ease back tomorrow.`}`;
+  }
+  // water (hand off to existing water state)
+  if(has('water','hydrat','drink')){
+    const wt=waterToday(); const w=_lastPlan&&_lastPlan.water?_lastPlan.water:null;
+    if(w==null) return null;
+    const drunk=(wt.ml/1000).toFixed(1), left=Math.max(0,w-wt.ml/1000).toFixed(1);
+    return +left<=0 ? `You've hit your hydration target — ${drunk}L down today. Nice.`
+                    : `You've logged ${drunk}L of about ${w.toFixed(1)}L today — ${left}L to go.`;
+  }
+  return null;
+}
+/* Is this a "what should I eat" style question? Those benefit from AI even though
+   we have data, because the answer is generative. We still try a light rule first. */
+function chatNeedsAI(q){
+  const s=q.toLowerCase();
+  return /what.*eat|what should i|recommend|suggest|recipe|meal idea|dinner|lunch|breakfast|why|explain|is it ok|can i have|instead of/.test(s);
+}
+let _chatHistory=[];
+function chatPush(role,text,src){
+  const log=$('chatLog');
+  const b=document.createElement('div');
+  b.className='bub '+(role==='me'?'me':'bot')+(src==='thinking'?' thinking':'');
+  b.innerHTML = text.replace(/</g,'&lt;') + (src&&src!=='thinking'?`<span class="src">${src}</span>`:'');
+  log.appendChild(b); log.scrollTop=log.scrollHeight;
+  return b;
+}
+async function chatAnswer(q){
+  q=q.trim(); if(!q) return;
+  chatPush('me',q);
+  _chatHistory.push({role:'user',text:q});
+  // 1) try the rule layer first (free, instant) — but for generative asks, prefer AI
+  let ruled = chatNeedsAI(q)? null : chatRuleAnswer(q);
+  if(ruled){ chatPush('bot',ruled,'From your data'); _chatHistory.push({role:'bot',text:ruled}); return; }
+  // 2) AI fallback (only if key present)
+  if(!aiReady()){
+    // last-ditch rule answer even for generative asks, so no-key users still get something
+    const fallback=chatRuleAnswer(q);
+    if(fallback){ chatPush('bot',fallback,'From your data'); return; }
+    chatPush('bot','I can answer questions about today\'s calories, protein, sugar and water straight away. For tailored food ideas, add a Google AI key in settings (the gear icon).','No AI key');
+    return;
+  }
+  const thinking=chatPush('bot','Checking with AI for a more tailored answer…','thinking');
+  try{
+    const c=chatContext();
+    const prompt=`You are a supportive, evidence-based nutrition assistant inside a calorie-tracking app. Answer the user's question in 2-4 short sentences using their live data below. Be specific and practical, never preachy; an occasional treat is fine. Do not give exercise or medical advice. If recovery is low (red), it's fine to suggest quality carbs, protein, hydration and magnesium-rich foods, but never tell them to eat below their calorie target.\nLive data: ${JSON.stringify(c)}\nQuestion: "${q}"\nReply with ONLY the answer, no preamble.`;
+    const ans=(await aiText(prompt,300)).trim();
+    thinking.classList.remove('thinking');
+    thinking.innerHTML = ans.replace(/</g,'&lt;')+'<span class="src">AI · using your data</span>';
+    _chatHistory.push({role:'bot',text:ans});
+  }catch(e){
+    thinking.classList.remove('thinking');
+    const fb=chatRuleAnswer(q);
+    thinking.innerHTML = (fb||'Couldn\'t reach AI just now. Try again, or ask me about your calories, protein, sugar or water — I can answer those straight from your data.')+(fb?'<span class="src">From your data</span>':'<span class="src">Offline</span>');
+  }
+}
+function openChat(){
+  if(!S.height){ openSetup(); return; }
+  const chips=$('chatChips');
+  chips.innerHTML=CHAT_CHIPS.map(c=>`<span class="chatchip">${c}</span>`).join('');
+  chips.querySelectorAll('.chatchip').forEach(c=>c.onclick=()=>{ $('chatInput').value=''; chatAnswer(c.textContent); });
+  openSheet($('chatSheet'));
+  setTimeout(()=>$('chatInput').focus(),300);
 }
 
 function renderPredict(){
@@ -1203,7 +2004,7 @@ function renderPredict(){
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1900);}
 function openSheet(el){$('scrim').classList.add('on');el.classList.add('on');}
-function closeSheets(){$('scrim').classList.remove('on');['weighSheet','setupSheet','foodSheet','aiSheet','methodSheet','searchSheet','scanSheet','nameSheet'].forEach(id=>$(id).classList.remove('on'));if(typeof stopScanner==='function')stopScanner();}
+function closeSheets(){$('scrim').classList.remove('on');['weighSheet','setupSheet','foodSheet','aiSheet','methodSheet','searchSheet','manualSheet','backfillSheet','mealsSheet','chatSheet','scanSheet','nameSheet','pnameSheet'].forEach(id=>$(id).classList.remove('on'));if(typeof stopScanner==='function')stopScanner();}
 $('scrim').onclick=closeSheets;
 
 /* ---------- water logging ---------- */
@@ -1258,19 +2059,67 @@ function renderFoodLog(){
 let _pendingEst=null, _pendingThumb=null;
 
 $('addFoodBtn').onclick=()=>{ if(!S.height){openSetup();return;} renderRecentMeals(); openSheet($('methodSheet')); };
+$('askBtn').onclick=openChat;
+$('aiFab').onclick=openChat;
+{ const hb=$('homeBank'); if(hb) hb.onclick=()=>switchTab('trends'); }
+$('closeChat').onclick=closeSheets;
+$('chatSend').onclick=()=>{ const v=$('chatInput').value; $('chatInput').value=''; chatAnswer(v); };
+$('chatInput').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const v=$('chatInput').value; $('chatInput').value=''; chatAnswer(v); } });
 function renderRecentMeals(){
   const wrap=$('recentMeals'); if(!wrap) return;
-  const list=(S.savedMeals||[]).slice(0,6);
+  const list=(S.savedMeals||[]).slice().sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||(b.last||0)-(a.last||0)).slice(0,6);
   if(!list.length){ wrap.innerHTML=''; return; }
-  wrap.innerHTML='<div class="recent-lab">Quick add — tap to log again (no AI needed)</div>'+
+  wrap.innerHTML='<div class="recent-lab">Quick add — tap to log again (no AI needed)<span id="seeAllMeals" style="float:right;color:var(--goal);cursor:pointer;text-transform:none;letter-spacing:0">My Meals →</span></div>'+
     '<div class="recent-chips">'+list.map((m,i)=>
-      `<button class="recent-chip" data-i="${i}"><span class="rc-name">${m.dish}</span><span class="rc-kcal">${m.kcal} kcal</span></button>`
+      `<button class="recent-chip" data-i="${i}"><span class="rc-name">${m.fav?'★ ':''}${m.dish}</span><span class="rc-kcal">${m.kcal} kcal</span></button>`
     ).join('')+'</div>';
   wrap.querySelectorAll('.recent-chip').forEach(b=>b.onclick=()=>{
     const m=list[+b.dataset.i];
-    S.meals.push({t:Date.now(),dish:m.dish,kcal:m.kcal,p:m.p,c:m.c,f:m.f,fb:m.fb,thumb:null});
+    S.meals.push({t:Date.now(),dish:m.dish,kcal:m.kcal,p:m.p,c:m.c,f:m.f,fb:m.fb,sg:(m.sg!=null?m.sg:null),thumb:null});
     rememberMeal(m); // bump recency
     save(S); closeSheets(); buildPlan(); toast('Logged '+m.dish+' · '+m.kcal+' kcal');
+  });
+  const sa=$('seeAllMeals'); if(sa) sa.onclick=()=>{ closeSheets(); setTimeout(openMeals,200); };
+}
+
+/* ---------- My Meals library ---------- */
+let _mealsFilter='all';
+function openMeals(){ _mealsFilter='all'; $('segAll').classList.add('on'); $('segFav').classList.remove('on'); renderMealsList(); openSheet($('mealsSheet')); }
+$('closeMeals').onclick=closeSheets;
+$('segAll').onclick=()=>{ _mealsFilter='all'; $('segAll').classList.add('on'); $('segFav').classList.remove('on'); renderMealsList(); };
+$('segFav').onclick=()=>{ _mealsFilter='fav'; $('segFav').classList.add('on'); $('segAll').classList.remove('on'); renderMealsList(); };
+function renderMealsList(){
+  const box=$('mealsList');
+  let list=(S.savedMeals||[]).slice();
+  if(_mealsFilter==='fav') list=list.filter(m=>m.fav);
+  list.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||(b.last||0)-(a.last||0));
+  if(!list.length){
+    box.innerHTML=`<div class="smuted">${_mealsFilter==='fav'?'No favourites yet. Tap the ☆ on any meal to pin it here.':'Nothing saved yet. Log a meal and it shows up here for instant re-logging.'}</div>`;
+    return;
+  }
+  box.innerHTML=list.map((m,i)=>`
+    <div class="mrow" data-i="${i}">
+      <div class="m-star ${m.fav?'on':''}" data-act="star">${m.fav?'★':'☆'}</div>
+      <div class="m-main" data-act="log">
+        <div class="m-name">${m.dish}</div>
+        <div class="m-meta">${m.p||0}P · ${m.c||0}C · ${m.f||0}F${m.sg!=null?` · ${m.sg}g sugar`:''}${m.n>1?` · logged ${m.n}×`:''}</div>
+      </div>
+      <div class="m-kcal">${m.kcal}</div>
+      <div class="m-del" data-act="del">✕</div>
+    </div>`).join('');
+  box.querySelectorAll('.mrow').forEach(row=>{
+    const m=list[+row.dataset.i];
+    row.querySelectorAll('[data-act]').forEach(el=>el.onclick=()=>{
+      const act=el.dataset.act;
+      const key=(m.dish||'').trim().toLowerCase();
+      const ref=S.savedMeals.find(x=>(x.dish||'').trim().toLowerCase()===key);
+      if(act==='star'){ if(ref){ ref.fav=!ref.fav; save(S); } renderMealsList(); }
+      else if(act==='del'){ S.savedMeals=S.savedMeals.filter(x=>x!==ref); save(S); renderMealsList(); toast('Removed from My Meals'); }
+      else if(act==='log'){
+        S.meals.push({t:Date.now(),dish:m.dish,kcal:m.kcal,p:m.p,c:m.c,f:m.f,fb:m.fb,sg:(m.sg!=null?m.sg:null),thumb:null});
+        rememberMeal(m); save(S); closeSheets(); buildPlan(); toast('Logged '+m.dish+' · '+m.kcal+' kcal');
+      }
+    });
   });
 }
 $('closeMethod').onclick=closeSheets;
@@ -1280,8 +2129,28 @@ document.querySelectorAll('.method').forEach(b=>b.onclick=()=>{
     if(m==='photo') $('foodFile').click();
     else if(m==='barcode') openScanner();
     else if(m==='search') openSearch();
+    else if(m==='manual') openManual();
   },200);
 });
+
+/* MANUAL ENTRY — no AI, no network */
+function openManual(){
+  ['manName','manKcal','manP','manC','manF','manFb','manSg'].forEach(id=>$(id).value='');
+  openSheet($('manualSheet')); setTimeout(()=>$('manName').focus(),300);
+}
+$('closeManual').onclick=closeSheets;
+$('manualGo').onclick=()=>{
+  const kcal=+$('manKcal').value||0;
+  if(!kcal){ toast('Enter at least the calories'); return; }
+  const sgRaw=$('manSg').value;
+  _pendingEst={
+    dish:($('manName').value||'Food').trim(),
+    kcal, protein_g:+$('manP').value||0, carb_g:+$('manC').value||0,
+    fat_g:+$('manF').value||0, fiber_g:+$('manFb').value||0,
+    sugar_g:(sgRaw!==''?+sgRaw:null), source:'manual', thumb:null
+  };
+  commitLog();
+};
 
 /* normalised estimate: {dish, kcal, protein_g, carb_g, fat_g, items?, assumptions?, confidence?, source, thumb?} */
 function showEstimate(est){
@@ -1293,16 +2162,24 @@ function showEstimate(est){
   $('foodTitle').textContent=est.dish||'Your food';
   $('foodSub').textContent=conf||srcLabel;
   const itemsBlock = est.items&&est.items.length
-    ? `<div class="est-items"><b>What I saw</b>${est.items.map(it=>`<div class="ei"><span>${it.food} · ${it.portion}</span><span>${it.kcal} kcal</span></div>`).join('')}</div>` : '';
+    ? `<div class="est-items" id="estItems"><b>What I saw — tap ✕ to remove anything that isn't yours</b>${est.items.map((it,i)=>`
+        <div class="ei" data-i="${i}">
+          <div class="ei-info"><div class="ei-food">${it.food}</div><div class="ei-port">${it.portion||''}</div></div>
+          <span class="ei-kcal">${it.kcal||0} kcal</span>
+          <span class="ei-x" data-i="${i}">✕</span>
+        </div>`).join('')}<div class="ei-hint">Totals above update as you remove items.</div></div>` : '';
   const noteText = est.assumptions || (est.basis? `Values ${est.basis}.` : '');
+  const coachBlock = est.source==='barcode' ? renderCoachHTML(est) : '';
   $('foodBody').innerHTML=`
     ${est.thumb?`<img class="preview" src="${est.thumb}">`:''}
-    <div class="est-total"><span class="num">${est.kcal||0}</span><span class="u">kcal</span></div>
+    <div class="est-total"><span class="num" id="estKcal">${est.kcal||0}</span><span class="u">kcal</span></div>
     <div class="est-macros">
-      <div class="em"><b style="color:var(--protein)">${est.protein_g||0}g</b><span>Protein</span></div>
-      <div class="em"><b style="color:var(--carb)">${est.carb_g||0}g</b><span>Carbs</span></div>
-      <div class="em"><b style="color:var(--ink-dim)">${est.fat_g||0}g</b><span>Fat</span></div>
+      <div class="em"><b style="color:var(--protein)" id="estP">${est.protein_g||0}g</b><span>Protein</span></div>
+      <div class="em"><b style="color:var(--carb)" id="estC">${est.carb_g||0}g</b><span>Carbs</span></div>
+      <div class="em"><b style="color:var(--ink-dim)" id="estF">${est.fat_g||0}g</b><span>Fat</span></div>
     </div>
+    <div class="est-note" id="estSugarNote" style="border-color:#3a2a1a;${est.sugar_g!=null?'':'display:none'}"><span><span id="estSg">${est.sugar_g!=null?est.sugar_g:0}</span>g of those carbs are sugar.</span></div>
+    ${coachBlock}
     ${itemsBlock}
     ${noteText?`<div class="est-note">⚠︎ <span>${noteText} ${srcLabel}.</span></div>`:''}
     <button class="adjust-btn" id="adjustBtn">✎ Adjust name or numbers</button>`;
@@ -1310,7 +2187,60 @@ function showEstimate(est){
   $('retryFood').style.display = est.source==='photo'?'block':'none';
   $('foodActions').style.display='block';
   const ab=$('adjustBtn'); if(ab) ab.onclick=showEstimateEdit;
+  // tap-to-remove itemization (photo)
+  if(est.items&&est.items.length){
+    est.items.forEach(it=>{ if(it._removed==null) it._removed=false; });
+    document.querySelectorAll('#estItems .ei-x').forEach(x=>x.onclick=()=>{
+      const i=+x.dataset.i; const it=est.items[i]; if(!it) return;
+      it._removed=!it._removed;
+      const row=document.querySelector(`#estItems .ei[data-i="${i}"]`);
+      if(row) row.classList.toggle('gone', it._removed);
+      x.textContent=it._removed?'＋':'✕';
+      recalcFromItems(est);
+    });
+  }
   openSheet($('foodSheet'));
+  // enrich swap via AI only if the rule table had none — runs async, cached per product
+  if(est.source==='barcode'){ maybeEnrichSwap(est); }
+}
+/* recompute totals from the non-removed items and update the card + _pendingEst */
+function recalcFromItems(est){
+  const live=est.items.filter(it=>!it._removed);
+  const sum=live.reduce((a,it)=>({
+    kcal:a.kcal+(+it.kcal||0), p:a.p+(+it.protein_g||0), c:a.c+(+it.carb_g||0),
+    f:a.f+(+it.fat_g||0), fb:a.fb+(+it.fiber_g||0), sg:a.sg+(+it.sugar_g||0)
+  }),{kcal:0,p:0,c:0,f:0,fb:0,sg:0});
+  // only override fields the items actually carry; keep original if items lack a macro
+  est.kcal=Math.round(sum.kcal); est.protein_g=Math.round(sum.p); est.carb_g=Math.round(sum.c);
+  est.fat_g=Math.round(sum.f); est.fiber_g=Math.round(sum.fb);
+  const anySugar=live.some(it=>it.sugar_g!=null);
+  est.sugar_g = anySugar? Math.round(sum.sg) : est.sugar_g;
+  _pendingEst=est;
+  const set=(id,v)=>{ const el=$(id); if(el) el.textContent=v; };
+  set('estKcal',est.kcal); set('estP',est.protein_g+'g'); set('estC',est.carb_g+'g'); set('estF',est.fat_g+'g');
+  if(est.sugar_g!=null){ set('estSg',est.sugar_g); const n=$('estSugarNote'); if(n) n.style.display=''; }
+}
+/* rule-based coach card markup (instant, no AI) */
+function renderCoachHTML(est){
+  const c=coachMessage(est);
+  est._coach=c; // stash so swap enrichment can tell if a swap already exists
+  let swapHTML='';
+  if(c.swap){
+    swapHTML=`<div class="c-swap">↪ Try <b>${c.swap.swap}</b> — ${c.swap.why}.</div>`;
+  } else {
+    // placeholder that AI may fill; harmless if it stays empty
+    swapHTML=`<div class="c-swap" id="coachSwap" style="display:none"></div>`;
+  }
+  return `<div class="bcoach ${c.tier}"><div class="c-head">${c.head}</div><div class="c-body">${c.body}</div>${swapHTML}</div>`;
+}
+async function maybeEnrichSwap(est){
+  if(est._coach && est._coach.swap) return; // rules already gave a swap
+  const slot=$('coachSwap'); if(!slot) return;
+  const r=await aiSwap(est);
+  if(r && r.swap){
+    slot.innerHTML=`↪ Try <b>${r.swap}</b>${r.why?` — ${r.why}`:''}.`;
+    slot.style.display='block';
+  }
 }
 /* editable version — correct the AI when it's off */
 function showEstimateEdit(){
@@ -1325,15 +2255,18 @@ function showEstimateEdit(){
       <div class="adj-field"><label>Carbs (g)</label><input type="number" inputmode="numeric" id="adjC" value="${Math.round(e.carb_g)||0}"></div>
       <div class="adj-field"><label>Fat (g)</label><input type="number" inputmode="numeric" id="adjF" value="${Math.round(e.fat_g)||0}"></div>
       <div class="adj-field"><label>Fibre (g)</label><input type="number" inputmode="numeric" id="adjFb" value="${Math.round(e.fiber_g)||0}"></div>
+      <div class="adj-field"><label>Sugar (g)</label><input type="number" inputmode="numeric" id="adjSg" value="${e.sugar_g!=null?Math.round(e.sugar_g):''}" placeholder="—"></div>
     </div>
     <p class="adj-hint">Tip: portion size is what AI most often gets wrong — adjust calories to match what you actually ate.</p>`;
   // turn the footer Log button into "Save & log" for the edited values
   $('logFood').textContent='Save & log';
   $('logFood').onclick=()=>{
+    const sgRaw=$('adjSg').value;
     _pendingEst={
       dish:($('adjName').value||'Food').trim(),
       kcal:+$('adjKcal').value||0, protein_g:+$('adjP').value||0,
       carb_g:+$('adjC').value||0, fat_g:+$('adjF').value||0, fiber_g:+$('adjFb').value||0,
+      sugar_g:(sgRaw!==''?+sgRaw:null),
       thumb:e.thumb||null, source:e.source
     };
     commitLog();
@@ -1359,6 +2292,7 @@ $('foodFile').onchange=async(ev)=>{
   try{
     const r=await aiEstimateMeal(b64,media); const t=r.total||{};
     showEstimate({dish:r.dish,kcal:t.kcal,protein_g:t.protein_g,carb_g:t.carb_g,fat_g:t.fat_g,fiber_g:t.fiber_g,
+      sugar_g:(t.sugar_g!=null?t.sugar_g:null),
       items:r.items,assumptions:r.assumptions,confidence:r.confidence,source:'photo',thumb});
   }catch(e){ estError('Couldn\'t read that one — try a clearer, well-lit shot of the whole plate.'); }
 };
@@ -1376,10 +2310,14 @@ $('closeSearch').onclick=closeSheets;
 async function runSearch(){
   const term=$('searchInput').value.trim(); if(!term) return;
   $('searchResults').innerHTML='<div class="spinner"></div>';
+  // 1) Local Malaysian DB first — instant, no network, no AI
+  const local=searchLocalDB(term);
   let res=[];
   try{
     res=await offSearch(term);
   }catch(e){ res=[]; }
+  // merge: local matches on top, then Open Food Facts
+  res=[...local, ...res];
   // Database empty or down → fall back to AI estimate (the OFF search endpoint is often unreliable)
   if(!res.length){
     if(aiReady()){
@@ -1400,8 +2338,8 @@ async function runSearch(){
   }
   $('searchResults').innerHTML=res.map((r,i)=>`
     <div class="sresult" data-i="${i}">
-      <div class="sr-info"><div class="sr-name">${r.dish}</div>${r.brand?`<div class="sr-brand">${r.brand}</div>`:''}</div>
-      <div class="sr-kcal">${r.kcal}<small>${r.basis}</small></div>
+      <div class="sr-info"><div class="sr-name">${r.dish}</div>${r.brand?`<div class="sr-brand">${r.brand}</div>`:''}${r.local?`<div class="sr-badge">★ Local · instant</div>`:''}</div>
+      <div class="sr-kcal">${r.kcal}<small>${r.basis}${r.sugar_g!=null?` · ${r.sugar_g}g sugar`:''}</small></div>
     </div>`).join('');
   _searchRes=res;
   $('searchResults').querySelectorAll('.sresult').forEach(el=>el.onclick=()=>{
@@ -1443,6 +2381,7 @@ async function lookupBarcode(code){
   try{
     const item=await offBarcode(code);
     if(!item){ estError('That barcode isn\'t in the database yet. Try "Search a product" or "Describe it".'); return; }
+    item._code=code;
     showEstimate({...item,source:'barcode'});
   }catch(e){ estError('Couldn\'t reach the food database. Try again or use "Describe it".'); }
 }
@@ -1459,7 +2398,8 @@ function commitLog(){
   if(!_pendingEst)return; const e=_pendingEst;
   const meal={dish:e.dish||'Food',kcal:Math.round(e.kcal)||0,
     p:Math.round(e.protein_g)||0,c:Math.round(e.carb_g)||0,
-    f:Math.round(e.fat_g)||0,fb:Math.round(e.fiber_g)||0};
+    f:Math.round(e.fat_g)||0,fb:Math.round(e.fiber_g)||0,
+    sg:(e.sugar_g!=null?Math.round(e.sugar_g):null)};
   S.meals.push({t:Date.now(),...meal,thumb:e.thumb||null});
   rememberMeal(meal);   // save to recents for instant re-logging (no AI next time)
   save(S); _pendingEst=null; closeSheets(); buildPlan(); toast('Logged · target updated');
@@ -1469,9 +2409,14 @@ $('logFood').onclick=commitLog;
 function rememberMeal(m){
   if(!S.savedMeals) S.savedMeals=[];
   const key=(m.dish||'').trim().toLowerCase();
+  const prev=S.savedMeals.find(x=>(x.dish||'').trim().toLowerCase()===key);
   S.savedMeals=S.savedMeals.filter(x=>(x.dish||'').trim().toLowerCase()!==key);
-  S.savedMeals.unshift({...m, last:Date.now(), n:(( S.savedMeals.find(x=>(x.dish||'').trim().toLowerCase()===key)?.n)||0)+1});
-  S.savedMeals=S.savedMeals.slice(0,30);
+  S.savedMeals.unshift({...m, sg:(m.sg!=null?m.sg:(prev?prev.sg:null)), last:Date.now(),
+    n:((prev?.n)||0)+1, fav:prev?prev.fav:false});
+  // keep up to 40, but never drop favourites
+  const favs=S.savedMeals.filter(x=>x.fav), rest=S.savedMeals.filter(x=>!x.fav).slice(0,40-favs.length);
+  S.savedMeals=[...favs.filter(f=>!rest.includes(f)), ...rest]
+    .sort((a,b)=>(b.last||0)-(a.last||0));
   save(S);
 }
 
@@ -1740,14 +2685,14 @@ $('saveSetup').onclick=()=>{
 };
 
 /* connect (mock OAuth) */
-$('connBtn').onclick=async()=>{
+async function toggleWhoop(){
   if(S.connected){
     if(WORKER_BASE){ try{ await fetch(`${WORKER_BASE}/disconnect?uid=${encodeURIComponent(deviceId())}`); }catch(e){} }
     S.connected=false; _todayCache=null; save(S); updateConn(); buildPlan(); toast('Whoop disconnected'); return;
   }
   if(WORKER_BASE){
     // real OAuth: themed name modal, then redirect with a connecting overlay
-    $('nameIn').value='';
+    $('nameIn').value=S.name||'';
     openSheet($('nameSheet'));
     setTimeout(()=>$('nameIn').focus(),200);
     return;
@@ -1758,12 +2703,148 @@ $('connBtn').onclick=async()=>{
   if(!S.height) S.height=body.height;
   if(!S.weights.length && body.weight){ S.startW=body.weight; S.weights.push({t:Date.now(),kg:body.weight}); }
   S.connected=true; save(S); updateConn(); buildPlan(); toast('Whoop connected');
+}
+{ const cb=$('connBtn'); if(cb) cb.onclick=toggleWhoop; }
+
+/* ---------- Profile screen ---------- */
+/* paint the saved photo into the profile avatar and the header button (or fall back to icons) */
+function paintAvatars(){
+  const av=$('profAv'), btn=$('profileBtn');
+  if(av){
+    let img=av.querySelector('.prof-av-img');
+    if(S.photo){
+      av.classList.add('has-photo');
+      if(!img){ img=document.createElement('img'); img.className='prof-av-img'; img.alt=''; av.insertBefore(img,av.firstChild); }
+      img.src=S.photo;
+    } else { av.classList.remove('has-photo'); if(img) img.remove(); }
+  }
+  if(btn){
+    let img=btn.querySelector('.pb-img');
+    if(S.photo){
+      btn.classList.add('has-photo');
+      if(!img){ img=document.createElement('img'); img.className='pb-img'; img.alt=''; btn.insertBefore(img,btn.firstChild); }
+      img.src=S.photo;
+    } else { btn.classList.remove('has-photo'); if(img) img.remove(); }
+  }
+}
+function renderProfile(){
+  if(!document.getElementById('view-profile')) return;
+  // identity
+  const name=(S.name||'').trim();
+  $('profName').textContent = name || 'Your profile';
+  $('profSub').textContent = name ? (S.connected?'WHOOP connected':'Tap to edit your name') : 'Tap to add your name';
+  // avatar photo
+  paintAvatars();
+  // whoop
+  const cd=$('profConnDot'), ct=$('profConnTitle'), cs=$('profConnSub'), cbtn=$('profConnBtn');
+  cd.classList.toggle('off',!S.connected);
+  ct.textContent = S.connected ? 'Connected' : 'Not connected';
+  cs.textContent = S.connected ? 'Using your real daily burn and recovery' : 'Connect to use your real daily burn and recovery';
+  cbtn.textContent = S.connected ? 'Disconnect' : 'Connect';
+  cbtn.classList.toggle('on',S.connected);
+  // ai
+  const ad=$('profAiDot'), at=$('profAiTitle'), abtn=$('profAiBtn');
+  const ready=aiReady();
+  ad.classList.toggle('off',!ready);
+  at.textContent = ready ? 'Gemini ready' : 'No AI key';
+  abtn.textContent = ready ? 'Manage' : 'Add key';
+  abtn.classList.toggle('on',ready);
+  // numbers
+  const box=$('profNums');
+  const cw=curWeight();
+  const rows=[
+    ['Sex', S.sex==='f'?'Female':'Male'],
+    ['Age', S.age?`${S.age}`:'—'],
+    ['Height', S.height?`${S.height} cm`:'—'],
+    ['Weight now', cw?`${cw.toFixed(1)} kg`:'—'],
+    ['Goal weight', S.goal?`${S.goal} kg`:'—'],
+    ['Timeframe', S.months?`${S.months} mo`:'—'],
+  ];
+  box.innerHTML=rows.map(([l,v])=>`<div class="prof-num"><div class="prof-num-lab">${l}</div><div class="prof-num-val">${v}</div></div>`).join('');
+}
+$('profConnBtn').onclick=toggleWhoop;
+$('profAiBtn').onclick=openAISheet;
+$('profEditNums').onclick=()=>{ openSetup(); };
+$('profPrivacy').onclick=(e)=>{ e.preventDefault(); window.open('https://alifahmad999-create.github.io/Whoop-Diet/privacy.html','_blank'); };
+
+/* name edit — in-theme modal */
+function openNameEdit(){
+  $('pnameIn').value=S.name||'';
+  openSheet($('pnameSheet'));
+  setTimeout(()=>$('pnameIn').focus(),250);
+}
+$('profNameEdit').onclick=openNameEdit;
+$('pnameSave').onclick=()=>{ S.name=$('pnameIn').value.trim(); save(S); renderProfile(); closeSheets(); };
+$('pnameCancel').onclick=closeSheets;
+$('pnameIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ S.name=$('pnameIn').value.trim(); save(S); renderProfile(); closeSheets(); } });
+
+/* profile photo — pick, downscale to a small circular-friendly square, store on-device */
+$('profAv').onclick=()=>$('avatarFile').click();
+$('avatarFile').onchange=(ev)=>{
+  const file=ev.target.files[0]; if(!file) return; ev.target.value='';
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      // center-crop to square, downscale to 256px, store as JPEG (keeps localStorage lean)
+      const size=256, c=document.createElement('canvas'); c.width=size; c.height=size;
+      const ctx=c.getContext('2d');
+      const s=Math.min(img.width,img.height);
+      const sx=(img.width-s)/2, sy=(img.height-s)/2;
+      ctx.drawImage(img,sx,sy,s,s,0,0,size,size);
+      try{
+        S.photo=c.toDataURL('image/jpeg',0.82);
+        save(S); renderProfile(); toast('Photo updated');
+      }catch(e){ toast('Couldn\'t save that image'); }
+    };
+    img.onerror=()=>toast('Couldn\'t read that image');
+    img.src=rd.result;
+  };
+  rd.readAsDataURL(file);
+};
+
+/* ---------- Backup & restore (on-device JSON) ---------- */
+$('profBackup').onclick=()=>{
+  try{
+    const data=JSON.stringify(S);
+    const blob=new Blob([data],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const d=new Date(); const stamp=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    a.href=url; a.download=`whoop-diet-backup-${stamp}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast('Backup saved');
+  }catch(e){ toast('Couldn\'t create backup'); }
+};
+$('profRestore').onclick=()=>$('restoreFile').click();
+$('restoreFile').onchange=(ev)=>{
+  const file=ev.target.files[0]; if(!file) return; ev.target.value='';
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const obj=JSON.parse(rd.result);
+      if(!obj || typeof obj!=='object' || (obj.height===undefined && !Array.isArray(obj.meals))){
+        toast('That doesn\'t look like a Whoop Diet backup'); return;
+      }
+      if(!confirm('Restore this backup? It replaces the data currently on this device.')) return;
+      // merge over defaults so missing keys don't break anything
+      S=Object.assign({sex:'m',height:null,age:null,goal:null,months:null,deficit:500,
+        weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null},obj);
+      save(S);
+      updateConn(); updateAIPill(); renderProfile(); buildPlan();
+      toast('Data restored');
+    }catch(e){ toast('Couldn\'t read that file'); }
+  };
+  rd.readAsText(file);
 };
 function updateConn(){
-  $('connDot').classList.toggle('off',!S.connected);
-  $('connTxt').textContent=S.connected?'Linked':'Connect';
-  const chip=document.getElementById('connBtn');
+  const dot=$('connDot'), txt=$('connTxt'), chip=document.getElementById('connBtn');
+  if(dot) dot.classList.toggle('off',!S.connected);
+  if(txt) txt.textContent=S.connected?'Linked':'Connect';
   if(chip) chip.classList.toggle('on',S.connected);
+  const pd=$('profileDot'); if(pd) pd.classList.toggle('off',!S.connected);
+  if(typeof renderProfile==='function') renderProfile();
 }
 
 /* ---------- AI settings (Gemini only) ---------- */
@@ -1774,15 +2855,19 @@ function applyAIMeta(){
 }
 function updateAIPill(){
   const ready=aiReady();
-  $('aiPill').classList.toggle('on',ready);
-  $('aiPillTxt').textContent = ready ? 'Gemini ready' : 'No AI key';
+  const pill=$('aiPill'), txt=$('aiPillTxt');
+  if(pill) pill.classList.toggle('on',ready);
+  if(txt) txt.textContent = ready ? 'Gemini ready' : 'No AI key';
   const pb=document.getElementById('poweredBy');
   if(pb) pb.textContent='Gemini';
+  if(typeof renderProfile==='function') renderProfile();
 }
-$('settingsTabBtn').onclick=$('aiPill').onclick=()=>{
+function openAISheet(){
   $('keyIn').value=curKey(); $('keyIn').type='password'; $('keyEye').textContent='show';
   applyAIMeta(); openSheet($('aiSheet'));
-};
+}
+$('settingsTabBtn').onclick=()=>switchTab('profile');
+$('profileBtn').onclick=()=>switchTab('profile');
 $('keyEye').onclick=()=>{
   const i=$('keyIn');
   if(i.type==='password'){ i.type='text'; $('keyEye').textContent='hide'; }
@@ -1808,6 +2893,7 @@ if(_pl) _pl.onclick=(e)=>{ e.preventDefault(); window.open('https://alifahmad999
 $('nameGo').onclick=()=>{
   const name=$('nameIn').value.trim();
   if(!name){ toast('Enter your name first'); return; }
+  S.name=name; save(S);
   closeSheets();
   $('connecting').classList.add('on');
   const uid=deviceId();
@@ -1821,14 +2907,18 @@ $('nameCancel').onclick=closeSheets;
 let _curTab='today';
 function switchTab(tab){
   _curTab=tab;
-  ['today','trends','weekly'].forEach(t=>{
+  ['today','trends','weekly','profile'].forEach(t=>{
     const v=document.getElementById('view-'+t);
     if(v) v.style.display = t===tab?'block':'none';
   });
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('act', !!b.dataset.tab && b.dataset.tab===tab));
+  // settings tab + profile header button reflect the profile tab being open
+  const st=$('settingsTabBtn'); if(st) st.classList.toggle('act', tab==='profile');
+  const pb=$('profileBtn'); if(pb) pb.classList.toggle('act', tab==='profile');
   window.scrollTo(0,0);
   if(tab==='trends') renderTrends();
   if(tab==='weekly') renderWeekly();
+  if(tab==='profile') renderProfile();
 }
 document.querySelectorAll('.tab').forEach(b=>{ if(b.dataset.tab) b.onclick=()=>switchTab(b.dataset.tab); });
 
@@ -1860,8 +2950,145 @@ function lineChart(svgId, points, opts={}){
   });
   svg.innerHTML=out;
 }
+/* ---------- Calorie Bank: cumulative banked deficit, milestones, pace ---------- */
+const BANK_MILESTONES=[
+  {kcal:1925,  kg:0.25, name:'0.25 kg'},
+  {kcal:3850,  kg:0.5,  name:'0.5 kg'},
+  {kcal:7700,  kg:1.0,  name:'1 kg'},
+  {kcal:15400, kg:2.0,  name:'2 kg'},
+];
+/* logged consistently if at least 4 of the last 5 calendar days have a logged day */
+function bankConsistent(){
+  const dayK=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime();};
+  const set=new Set((S.history||[]).filter(d=>d.kcal>0).map(d=>d.d));
+  const today=dayK(Date.now());
+  let hit=0;
+  for(let i=0;i<5;i++){ if(set.has(today-i*86400000)) hit++; }
+  return hit>=4;
+}
+function daysLeftInMonth(){
+  const now=new Date();
+  const end=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  return Math.max(0, end-now.getDate());
+}
+function bankBalance(){
+  // sum of (target - eaten) over logged days, counting only days under target (positive deposits)
+  const h=(S.history||[]).filter(d=>d.kcal>0 && d.target!=null);
+  let bal=0;
+  h.forEach(d=>{ const dep=d.target-d.kcal; if(dep>0) bal+=dep; });
+  return {bal:Math.round(bal), days:h.length};
+}
+function bankPacePerDay(){
+  // average daily deposit over the most recent up-to-7 logged days (positive only)
+  const h=(S.history||[]).filter(d=>d.kcal>0 && d.target!=null).sort((a,b)=>a.d-b.d);
+  const recent=h.slice(-7);
+  if(!recent.length) return 0;
+  let sum=0; recent.forEach(d=>{ const dep=d.target-d.kcal; if(dep>0) sum+=dep; });
+  return sum/recent.length;
+}
+function renderBank(){
+  const card=$('bankCard'); if(!card) return;
+  const {bal,days}=bankBalance();
+  $('bankBal').textContent=bal.toLocaleString();
+  const per=bankPacePerDay();
+  const consistent=bankConsistent();
+  const dayDeficit=(_lastPlan&&_lastPlan.deficit)||500;
+  // current tier + next milestone
+  let reached=null, next=null;
+  for(const m of BANK_MILESTONES){ if(bal>=m.kcal) reached=m; else { next=m; break; } }
+  const tier=$('bankTier');
+  tier.textContent = reached? reached.name+' banked' : '';
+  const nextEl=$('bankNext'), fill=$('bankFill'), pace=$('bankPace'), ms=$('bankMilestone');
+  // progress bar always reflects position toward next tier
+  if(next){
+    const prevFloor=reached?reached.kcal:0;
+    const pct=Math.max(0,Math.min(100,(bal-prevFloor)/(next.kcal-prevFloor)*100));
+    fill.style.width=pct.toFixed(1)+'%';
+  } else { fill.style.width='100%'; }
+  // "X until milestone" line: only when consistent AND within ~1 day's deficit of the next tier
+  const remain = next? next.kcal-bal : 0;
+  const nearMiss = next && consistent && remain<=dayDeficit;
+  if(nearMiss){
+    nextEl.style.display='block';
+    nextEl.innerHTML=`<b>${remain.toLocaleString()} kcal</b> to your ${next.name} milestone — almost there.`;
+    if(per>0){ const d=Math.max(1,Math.ceil(remain/per)); pace.style.display='block';
+      pace.innerHTML=`At your pace, about <b>${d} more day${d===1?'':'s'}</b>.`; }
+    else pace.style.display='none';
+  } else {
+    nextEl.style.display='none'; pace.style.display='none';
+  }
+  // spendable view: a sensible treat allowance + foods that fit, without undoing progress
+  renderBankSpend(bal, dayDeficit);
+  // milestone reached celebration (no emoji)
+  card.classList.toggle('milestone', !!reached);
+  // ease-up prompt: past 1kg, consistent, and on track to still clear 1kg this month even if they ease up
+  const dleft=daysLeftInMonth();
+  const projectedMonth = bal + per*dleft;           // where the bank lands by month end at current pace
+  const onTrack1kg = projectedMonth >= 7700;
+  if(reached && reached.kcal>=7700 && consistent && onTrack1kg){
+    ms.style.display='block';
+    ms.innerHTML=`<b>You've built a strong balance.</b> Based on your calorie bank, you can ease up `+
+      `— enjoy a cheat meal and still be on track to lose 1&nbsp;kg this month. `+
+      `Or keep going and bank toward more.`;
+  } else if(reached){
+    ms.style.display='block';
+    ms.innerHTML=`<b>${reached.name} milestone reached.</b> ≈ ${reached.kg.toFixed(2)} kg of fat-loss equivalent banked. `+
+      `That's earned flexibility — spend a little on a treat, or keep building.`;
+  } else {
+    ms.style.display='none';
+  }
+}
+/* compact bank strip on the Today screen — shows only when there's a meaningful message */
+function renderHomeBank(){
+  const strip=$('homeBank'); if(!strip) return;
+  const {bal}=bankBalance();
+  const per=bankPacePerDay();
+  const consistent=bankConsistent();
+  let reached=null; for(const m of BANK_MILESTONES){ if(bal>=m.kcal) reached=m; }
+  // decide message: ease-up (strong) > milestone reached > hidden
+  const dleft=daysLeftInMonth();
+  const onTrack1kg=(bal+per*dleft)>=7700;
+  let msg=null, gold=false;
+  if(reached && reached.kcal>=7700 && consistent && onTrack1kg){
+    msg='You can ease up — a cheat meal still keeps you on track for 1\u00A0kg this month.'; gold=true;
+  } else if(reached){
+    msg=`${reached.name} banked — that's earned flexibility.`; gold=true;
+  }
+  if(!msg){ strip.style.display='none'; return; }
+  strip.style.display='flex';
+  strip.classList.toggle('milestone',gold);
+  $('homeBankBal').textContent=bal.toLocaleString();
+  $('homeBankMsg').textContent=msg;
+}
+/* spendable treat view: shows an earned allowance + foods that fit under it */
+function renderBankSpend(bal, dayDeficit){
+  const wrap=$('bankSpend'); if(!wrap) return;
+  // only once there's a real cushion (a quarter-kg banked), so it's genuinely earned
+  if(bal < 1925){ wrap.style.display='none'; return; }
+  // allowance = a treat-sized slice: one day's deficit, but never more than ~40% of the bank
+  const allowance=Math.round(Math.min(dayDeficit||500, bal*0.4));
+  if(allowance<150){ wrap.style.display='none'; return; }
+  $('spendAmt').textContent=allowance.toLocaleString();
+  // pick up to 3 foods from the local DB that fit comfortably under the allowance
+  const db=(typeof MY_FOOD_DB!=='undefined')?MY_FOOD_DB:[];
+  const fits=db.filter(f=>f.kcal<=allowance)
+               .sort((a,b)=>b.kcal-a.kcal);            // biggest treats that still fit, first
+  // spread the picks: take a few from the top, skip near-duplicates by name root
+  const picks=[]; const seen=new Set();
+  for(const f of fits){
+    const root=f.dish.split(' ')[0].toLowerCase();
+    if(seen.has(root)) continue; seen.add(root);
+    picks.push(f); if(picks.length>=3) break;
+  }
+  if(!picks.length){ wrap.style.display='none'; return; }
+  $('spendList').innerHTML=picks.map(f=>
+    `<div class="spend-item"><span class="si-name">${f.dish}</span><span class="si-kcal">${f.kcal} kcal</span></div>`
+  ).join('');
+  wrap.style.display='block';
+}
 function renderTrends(){
   buildPlan(); // refresh predictor + current weight on this tab
+  renderBank();
   // weight chart from weigh-ins
   const wpts=(S.weights||[]).map(p=>({x:p.t,y:p.kg}));
   lineChart('weightChart', wpts, {colors:['#38c7e1']});
@@ -1888,27 +3115,30 @@ function renderWeekly(){
     s.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' – '+e.toLocaleDateString(undefined,{day:'numeric',month:'short'});
   // stats
   const stats=document.getElementById('weekStats');
-  if(!wd.length){ stats.innerHTML=''; document.getElementById('weekReportBody').textContent='Log a few days this week and your summary will appear here.'; return; }
+  if(!wd.length){ stats.innerHTML=''; document.getElementById('weekReportBody').textContent='Log a few days this week and your summary will appear here.'; renderCalendar(); renderCalDetail(); return; }
   const avgKcal=Math.round(wd.reduce((a,d)=>a+d.kcal,0)/wd.length);
   const avgTarget=Math.round(wd.reduce((a,d)=>a+d.target,0)/wd.length);
   const avgP=Math.round(wd.reduce((a,d)=>a+d.p,0)/wd.length);
-  const daysOnTarget=wd.filter(d=>d.kcal<=d.target+50).length;
+  const wWithTarget=wd.filter(d=>d.target!=null);
+  const daysOnTarget=wWithTarget.filter(d=>d.kcal<=d.target+50).length;
+  const onTargetDenom=wWithTarget.length||wd.length;
   const wWithWt=wd.filter(d=>d.weight!=null);
   let wChange=null;
   if(wWithWt.length>=2) wChange=+(wWithWt[wWithWt.length-1].weight-wWithWt[0].weight).toFixed(1);
   stats.innerHTML=`
     <div class="wstat"><div class="wstat-num">${avgKcal}</div><div class="wstat-lab">avg kcal / day</div></div>
-    <div class="wstat"><div class="wstat-num">${daysOnTarget}/${wd.length}</div><div class="wstat-lab">days on target</div></div>
+    <div class="wstat"><div class="wstat-num">${daysOnTarget}/${onTargetDenom}</div><div class="wstat-lab">days on target</div></div>
     <div class="wstat"><div class="wstat-num">${avgP}g</div><div class="wstat-lab">avg protein</div></div>
     <div class="wstat"><div class="wstat-num">${wChange==null?'—':(wChange>0?'+':'')+wChange+' kg'}</div><div class="wstat-lab">weight change</div></div>`;
   // AI summary
-  refreshWeekReport(wd,{avgKcal,avgTarget,avgP,daysOnTarget,wChange});
+  refreshWeekReport(wd,{avgKcal,avgTarget,avgP,daysOnTarget,onTargetDenom,wChange});
+  renderCalendar(); renderCalDetail();
 }
 let _weekKey=null;
 async function refreshWeekReport(wd,stats){
   const body=document.getElementById('weekReportBody');
   if(typeof DEMO_FALLBACK!=='undefined' && DEMO_FALLBACK){
-    body.textContent=`Strong week — you averaged ${stats.avgKcal} kcal against a ${stats.avgTarget} target and hit your number ${stats.daysOnTarget} of ${wd.length} days. Protein held at ${stats.avgP}g, good for holding muscle. ${stats.wChange!=null&&stats.wChange<0?`Down ${Math.abs(stats.wChange)}kg — right on pace.`:'Keep the deficit steady and the trend will follow.'}`;
+    body.textContent=`Strong week — you averaged ${stats.avgKcal} kcal against a ${stats.avgTarget} target and hit your number ${stats.daysOnTarget} of ${stats.onTargetDenom||wd.length} days. Protein held at ${stats.avgP}g, good for holding muscle. ${stats.wChange!=null&&stats.wChange<0?`Down ${Math.abs(stats.wChange)}kg — right on pace.`:'Keep the deficit steady and the trend will follow.'}`;
     return;
   }
   if(!aiReady()){ body.textContent='Add an AI key in settings to get a written weekly summary. Your stats above are ready now.'; return; }
@@ -1923,6 +3153,132 @@ async function refreshWeekReport(wd,stats){
 }
 const _rw=document.getElementById('refreshWeek');
 if(_rw) _rw.onclick=()=>{ _weekKey=null; renderWeekly(); };
+
+/* ---------- Monthly calendar ---------- */
+function dayMeals(dk){ // meals whose timestamp falls on the given day-key (local midnight)
+  const start=dk, end=dk+86400000;
+  return (S.meals||[]).filter(m=>m.t>=start && m.t<end);
+}
+function dayTotals(dk){
+  return dayMeals(dk).reduce((a,m)=>({
+    kcal:a.kcal+(m.kcal||0), p:a.p+(m.p||0), c:a.c+(m.c||0),
+    f:a.f+(m.f||0), fb:a.fb+(m.fb||0), sg:a.sg+(m.sg||0)
+  }),{kcal:0,p:0,c:0,f:0,fb:0,sg:0});
+}
+function dayLogged(dk){ // a day counts as "logged" if it has any meals OR a history snapshot with kcal
+  if(dayMeals(dk).length) return true;
+  return (S.history||[]).some(h=>h.d===dk && h.kcal>0);
+}
+let _calMonth=null;   // first-of-month timestamp being viewed
+let _calSel=null;     // selected day-key
+function calMonthStart(t){ const d=new Date(t); d.setDate(1); d.setHours(0,0,0,0); return d.getTime(); }
+function renderCalendar(){
+  if(_calMonth==null) _calMonth=calMonthStart(Date.now());
+  const grid=$('calGrid'); if(!grid) return;
+  const first=new Date(_calMonth);
+  const title=first.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  $('calTitle').textContent=title;
+  const year=first.getFullYear(), month=first.getMonth();
+  const todayK=dayKey(Date.now());
+  // leading blanks: Monday-first
+  const lead=(first.getDay()+6)%7;
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  let html='';
+  for(let i=0;i<lead;i++) html+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const dk=new Date(year,month,d).setHours(0,0,0,0);
+    const cls=['cal-cell'];
+    if(dk>todayK) cls.push('future');
+    else if(dayLogged(dk)) cls.push('logged');
+    if(dk===todayK) cls.push('today');
+    if(_calSel===dk) cls.push('sel');
+    const tappable = dk<=todayK;
+    html+=`<button class="${cls.join(' ')}" ${tappable?`data-dk="${dk}"`:'disabled'}>${d}</button>`;
+  }
+  grid.innerHTML=html;
+  grid.querySelectorAll('[data-dk]').forEach(c=>c.onclick=()=>{
+    const dk=+c.dataset.dk;
+    _calSel = (_calSel===dk? null : dk);
+    renderCalendar(); renderCalDetail();
+  });
+  // disable next-month nav past the current month
+  const curMonthStart=calMonthStart(Date.now());
+  $('calNext').disabled = _calMonth>=curMonthStart;
+}
+function renderCalDetail(){
+  const box=$('calDetail');
+  if(_calSel==null){ box.style.display='none'; box.innerHTML=''; return; }
+  const dk=_calSel;
+  const dt=new Date(dk);
+  const dateStr=dt.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
+  const meals=dayMeals(dk);
+  const tot=dayTotals(dk);
+  const isToday=dk===dayKey(Date.now());
+  let inner=`<div class="cal-detail-head"><span class="cal-detail-date">${dateStr}</span>`+
+            `${meals.length?`<span class="cal-detail-tot">${Math.round(tot.kcal)} kcal</span>`:''}</div>`;
+  if(meals.length){
+    inner+=meals.map((m,i)=>`<div class="cal-meal"><span>${m.dish||'Food'}</span>`+
+      `<span><span class="cm-k">${m.kcal||0} kcal</span> <span class="cm-x" data-del="${m.t}">✕</span></span></div>`).join('');
+  } else {
+    inner+=`<div class="cal-empty-note">No food logged on this day.${isToday?' Use “Add food” on the Today screen.':''}</div>`;
+  }
+  if(!isToday){
+    inner+=`<button class="cal-add" id="calAddBtn">+ Add food for this day</button>`;
+  }
+  box.innerHTML=inner; box.style.display='block';
+  // delete handlers
+  box.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{
+    const t=+x.dataset.del;
+    S.meals=(S.meals||[]).filter(m=>m.t!==t);
+    rebuildSnapshotFor(dk); save(S);
+    renderCalendar(); renderCalDetail(); if(dk===dayKey(Date.now())) buildPlan();
+    toast('Removed');
+  });
+  const add=$('calAddBtn'); if(add) add.onclick=()=>openBackfill(dk);
+}
+/* recompute (or remove) the history snapshot for a past day after a backfill/delete */
+function rebuildSnapshotFor(dk){
+  if(!S.history) S.history=[];
+  const tot=dayTotals(dk);
+  const i=S.history.findIndex(h=>h.d===dk);
+  if(tot.kcal<=0){ if(i>=0) S.history.splice(i,1); return; }
+  // preserve target/burn/weight if a snapshot already existed; else best-effort target
+  const prev=i>=0?S.history[i]:{};
+  const snap={ d:dk, kcal:Math.round(tot.kcal),
+    target: prev.target || (_lastPlan&&_lastPlan.intake) || null,
+    p:Math.round(tot.p), c:Math.round(tot.c), f:Math.round(tot.f), fb:Math.round(tot.fb),
+    burn: prev.burn||null, weight: prev.weight!=null?prev.weight:null };
+  if(i>=0) S.history[i]=snap; else S.history.push(snap);
+  S.history.sort((a,b)=>a.d-b.d);
+}
+/* backfill flow */
+let _bfDay=null;
+function openBackfill(dk){
+  _bfDay=dk;
+  const dt=new Date(dk);
+  $('bfTitle').textContent='Add for '+dt.toLocaleDateString(undefined,{day:'numeric',month:'short'});
+  ['bfName','bfKcal','bfP','bfC','bfF','bfFb','bfSg'].forEach(id=>$(id).value='');
+  openSheet($('backfillSheet')); setTimeout(()=>$('bfName').focus(),250);
+}
+$('closeBackfill').onclick=()=>{ closeSheets(); renderCalDetail(); };
+$('bfGo').onclick=()=>{
+  const kcal=+$('bfKcal').value||0;
+  if(!kcal){ toast('Enter at least the calories'); return; }
+  if(_bfDay==null) return;
+  const sgRaw=$('bfSg').value;
+  // timestamp the meal at noon of the chosen day so it lands squarely on that date
+  const ts=_bfDay+12*3600000;
+  const meal={t:ts, dish:($('bfName').value||'Food').trim(), kcal,
+    p:+$('bfP').value||0, c:+$('bfC').value||0, f:+$('bfF').value||0,
+    fb:+$('bfFb').value||0, sg:(sgRaw!==''?+sgRaw:null), thumb:null};
+  S.meals.push(meal);
+  rememberMeal({dish:meal.dish,kcal:meal.kcal,p:meal.p,c:meal.c,f:meal.f,fb:meal.fb,sg:meal.sg});
+  rebuildSnapshotFor(_bfDay); save(S);
+  closeSheets(); renderCalendar(); renderCalDetail();
+  toast('Added · '+meal.kcal+' kcal');
+};
+$('calPrev').onclick=()=>{ const d=new Date(_calMonth); d.setMonth(d.getMonth()-1); _calMonth=d.getTime(); renderCalendar(); };
+$('calNext').onclick=()=>{ const cur=calMonthStart(Date.now()); const d=new Date(_calMonth); d.setMonth(d.getMonth()+1); if(d.getTime()<=cur){ _calMonth=d.getTime(); renderCalendar(); } };
 
 /* ---------- boot ---------- */
 $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
@@ -1946,7 +3302,7 @@ async function handleWhoopReturn(){
 (async()=>{
   await handleWhoopReturn();
   // render immediately — don't block first paint on a network round-trip
-  updateConn(); updateAIPill();
+  updateConn(); updateAIPill(); paintAvatars();
   if(!S.height){ openSetup(); } else { buildPlan(); }
   // re-verify Whoop connection with the Worker in the background (tokens live server-side)
   if(WORKER_BASE && S.connected){
