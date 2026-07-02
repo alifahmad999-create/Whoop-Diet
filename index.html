@@ -116,6 +116,11 @@
   .prof-actions{display:flex;gap:9px;margin-bottom:12px}
   .prof-link{display:inline-block;font-size:12px;color:var(--ink-faint);text-decoration:none}
   .prof-link:active{color:var(--goal)}
+  /* start-fresh (danger) */
+  .prof-btn.danger{width:100%;flex:none;background:transparent;color:#e0683b;
+    border:1px solid rgba(224,104,59,.5);font-weight:800}
+  .prof-btn.danger:active{background:rgba(224,104,59,.12)}
+  .prof-danger-note{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:9px}
   .gear{width:38px;height:38px;border-radius:11px;background:var(--panel);border:1px solid var(--line);
     color:var(--ink-dim);display:grid;place-items:center;cursor:pointer}
   .gear:active{transform:scale(.95)}
@@ -973,6 +978,13 @@
       </div>
       <input type="file" id="restoreFile" accept="application/json,.json" hidden>
       <a href="#" class="prof-link" id="profPrivacy">Privacy policy</a>
+    </div>
+
+    <div class="prof-card">
+      <div class="prof-card-head">Start fresh</div>
+      <p class="prof-note">Clears your logged days — meals, weigh-ins, calorie bank, water and grades — so you can begin from a clean slate. Your profile, goal and saved meals stay.</p>
+      <button class="prof-btn danger" id="profStartFresh">Start fresh</button>
+      <p class="prof-danger-note">Tip: back up first if you might want your history back — this can't be undone.</p>
     </div>
   </div><!-- /view-profile -->
 
@@ -2837,6 +2849,36 @@ $('restoreFile').onchange=(ev)=>{
     }catch(e){ toast('Couldn\'t read that file'); }
   };
   rd.readAsText(file);
+};
+
+/* Start fresh — clears logged days only; keeps profile, goal & saved meals. Two-tap confirm. */
+let _freshArmed=false, _freshTimer=null;
+$('profStartFresh').onclick=function(){
+  const btn=this;
+  if(!_freshArmed){
+    _freshArmed=true;
+    btn.textContent='Tap again to clear my logged days';
+    _freshTimer=setTimeout(()=>{ _freshArmed=false; btn.textContent='Start fresh'; }, 4000);
+    return;
+  }
+  clearTimeout(_freshTimer); _freshArmed=false; btn.textContent='Start fresh';
+  // wipe logged data, preserve profile + goal + saved meals
+  S.meals=[];
+  S.history=[];
+  S.weights=[];        // daily weigh-in log (startW kept so goal math still works)
+  S.water=null;        // resets to a fresh empty day on next read
+  S.grade=null;        // yesterday's grade
+  save(S);
+  // clear per-day AI caches that referenced the now-cleared days
+  try{
+    localStorage.removeItem('whoopdiet.coachCache');
+    localStorage.removeItem('whoopdiet.suggCache');
+    localStorage.removeItem('whoopdiet.swapCache');
+  }catch(e){}
+  toast('Fresh start — your logged days are cleared');
+  // re-render everything from the clean state
+  if(typeof renderProfile==='function') renderProfile();
+  buildPlan();
 };
 function updateConn(){
   const dot=$('connDot'), txt=$('connTxt'), chip=document.getElementById('connBtn');
