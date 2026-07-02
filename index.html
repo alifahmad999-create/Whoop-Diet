@@ -268,11 +268,15 @@
     font-size:12.5px;color:var(--ink-dim);line-height:1.5}
   .rc-foods b{color:var(--ink);font-weight:600}
 
-  /* AI coach */
-  .coach{display:flex;gap:11px;align-items:flex-start;background:var(--panel);    border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin-bottom:14px}
-  .coach-ai{flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:0.06em;color:#08130d;
-    background:linear-gradient(135deg,var(--goal),#2bb988);padding:4px 7px;border-radius:7px;margin-top:1px}
-  .coach-txt{font-size:13.5px;line-height:1.45;color:var(--ink)}
+  /* AI coach — same card language as the recovery card: eyebrow header + roomy body */
+  .coach{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:15px 16px;margin-bottom:14px}
+  .coach-head{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.08em;color:var(--ink-faint);font-weight:700;margin-bottom:8px}
+  .coach-ai{flex-shrink:0;font-size:9px;font-weight:800;letter-spacing:0.06em;color:#08130d;
+    background:linear-gradient(135deg,var(--goal),#2bb988);padding:3px 6px;border-radius:6px}
+  .coach-txt{font-size:14.5px;line-height:1.5;color:var(--ink)}
+  .coach-txt b{color:var(--goal);font-weight:700}
   .coach.load .coach-txt{color:var(--ink-faint)}
   .coach.load .coach-txt::after{content:'▍';animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
@@ -734,7 +738,7 @@
   </div>
 
   <div class="coach" id="coachCard">
-    <span class="coach-ai">AI</span>
+    <div class="coach-head"><span class="coach-ai">AI</span> Today's coach</div>
     <div class="coach-txt" id="coachTxt">Your daily coach appears here once Whoop's connected and you've logged a meal or weigh-in.</div>
   </div>
 
@@ -1509,18 +1513,29 @@ const MY_FOOD_DB=[
   {dish:'Kelapa / coconut water',kcal:60,protein_g:1,carb_g:14,fat_g:0,fiber_g:1,sugar_g:12,tags:'coconut kelapa'},
 ];
 /* search the local DB by name/tags; returns result objects matching offToItem shape */
+/* Words too generic to signal a real match on their own. */
+const LOCAL_STOP=new Set(['a','an','the','of','with','and','w','one','two','plain','small','large','medium',
+  'iced','ais','hot','cup','plate','piece','pc','slice','stick','can','set','order','sweet','less','no','extra']);
 function searchLocalDB(term){
   const q=term.trim().toLowerCase();
   if(!q) return [];
-  const words=q.split(/\s+/).filter(Boolean);
+  // whole-word token test so "ice" never matches "rice", "mee" never matches inside other words, etc.
+  const hasWord=(hay,w)=>new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(hay);
+  const words=q.split(/[^a-z0-9]+/).filter(w=>w.length>=2);
+  // meaningful tokens = drop stopwords; if the query is ALL stopwords, keep them so we still try
+  const meaningful=words.filter(w=>!LOCAL_STOP.has(w));
+  const tokens=meaningful.length?meaningful:words;
   const scored=MY_FOOD_DB.map(f=>{
     const hay=(f.dish+' '+(f.tags||'')).toLowerCase();
-    let score=0;
-    if(hay.includes(q)) score+=10;
-    words.forEach(w=>{ if(hay.includes(w)) score+=3; });
+    let hits=0, score=0;
+    if(hay.includes(q)) score+=10;                 // full phrase substring — strong signal
+    tokens.forEach(w=>{ if(hasWord(hay,w)){ hits++; score+=3; } });
     if(f.dish.toLowerCase().startsWith(q)) score+=5;
-    return {f,score};
-  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,8);
+    return {f,score,hits};
+  })
+  // require a real token hit (or the full-phrase match), not just a coincidental fragment
+  .filter(x=>x.hits>0 || x.score>=10)
+  .sort((a,b)=>b.score-a.score).slice(0,8);
   return scored.map(({f})=>({
     dish:f.dish, brand:'', basis:'per serving · local',
     kcal:f.kcal, protein_g:f.protein_g, carb_g:f.carb_g, fat_g:f.fat_g, fiber_g:f.fiber_g,
@@ -3013,16 +3028,22 @@ function daysLeftInMonth(){
   const end=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   return Math.max(0, end-now.getDate());
 }
+/* Only completed days deposit into the bank — today is still in progress, so it never counts
+   until it rolls over at midnight. Prevents the bank showing a balance mid-day. */
+function bankDays(){
+  const today=dayKey(Date.now());
+  return (S.history||[]).filter(d=>d.kcal>0 && d.target!=null && d.d<today);
+}
 function bankBalance(){
-  // sum of (target - eaten) over logged days, counting only days under target (positive deposits)
-  const h=(S.history||[]).filter(d=>d.kcal>0 && d.target!=null);
+  // sum of (target - eaten) over completed logged days, counting only days under target (positive deposits)
+  const h=bankDays();
   let bal=0;
   h.forEach(d=>{ const dep=d.target-d.kcal; if(dep>0) bal+=dep; });
   return {bal:Math.round(bal), days:h.length};
 }
 function bankPacePerDay(){
-  // average daily deposit over the most recent up-to-7 logged days (positive only)
-  const h=(S.history||[]).filter(d=>d.kcal>0 && d.target!=null).sort((a,b)=>a.d-b.d);
+  // average daily deposit over the most recent up-to-7 completed days (positive only)
+  const h=bankDays().sort((a,b)=>a.d-b.d);
   const recent=h.slice(-7);
   if(!recent.length) return 0;
   let sum=0; recent.forEach(d=>{ const dep=d.target-d.kcal; if(dep>0) sum+=dep; });
