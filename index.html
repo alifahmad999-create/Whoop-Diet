@@ -255,6 +255,28 @@
   .m2-lab .pip{width:8px;height:8px;border-radius:50%;transition:background .4s,box-shadow .4s}
   .m2-val{font-size:13px;font-weight:700;color:var(--ink-dim)}
 
+  /* tappable macro cards → body-composition insight sheet */
+  [data-macro]{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
+  [data-macro]:active{transform:scale(.972)}
+  .m-info{width:14px;height:14px;border:1px solid #2b4335;border-radius:50%;flex-shrink:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    font:600 9px -apple-system,'Helvetica Neue',sans-serif;color:#4d7059;letter-spacing:0;font-style:normal;text-transform:none}
+  .m-lab .m-info{margin-left:auto}
+  .m2-lab .m-info{margin-left:2px}
+
+  /* insight sheet */
+  .mi-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:15px}
+  .mi-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+    padding:5px 10px;border-radius:8px;border:1px solid;letter-spacing:.01em;
+    font-variant-numeric:tabular-nums}
+  .mi-chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+  .mi-body p{font-size:13.5px;line-height:1.58;color:var(--ink-dim);margin-bottom:12px}
+  .mi-body p b{color:var(--ink);font-weight:700}
+  .mi-do{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--goal);
+    border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.5;color:var(--ink)}
+  .mi-do span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--ink-faint);font-weight:800;margin-bottom:4px}
+
   /* "what X kcal gets you" collapsible card */
   .enough{background:linear-gradient(160deg,#13201b,#121a17);border:1px solid #20392e;
     border-radius:13px;padding:0;margin:12px 0 16px;overflow:hidden}
@@ -913,31 +935,31 @@
     </div>
 
     <div class="macros">
-      <div class="macro">
-        <div class="m-lab"><span class="pip" id="proDot" style="background:var(--protein)"></span>Protein</div>
+      <div class="macro" data-macro="protein">
+        <div class="m-lab"><span class="pip" id="proDot" style="background:var(--protein)"></span>Protein<span class="m-info">i</span></div>
         <div class="m-val num"><span id="proEaten">0</span><small>/<span id="proVal">—</span>g</small></div>
         <div class="m-barrow"><span class="m-bar"><i class="m-fill" id="proBar"></i><i class="m-over" id="proOver"></i></span><span class="m-pct" id="proPct">0%</span></div>
         <div class="m-sub" id="proMeta">muscle retention</div>
       </div>
-      <div class="macro">
-        <div class="m-lab"><span class="pip" id="carbDot" style="background:var(--carb)"></span>Carbs</div>
+      <div class="macro" data-macro="carbs">
+        <div class="m-lab"><span class="pip" id="carbDot" style="background:var(--carb)"></span>Carbs<span class="m-info">i</span></div>
         <div class="m-val num"><span id="carbEaten">0</span><small>/<span id="carbState">—</span>g</small></div>
         <div class="m-barrow"><span class="m-bar"><i class="m-fill" id="carbBar"></i><i class="m-over" id="carbOver"></i></span><span class="m-pct" id="carbPct">0%</span></div>
         <div class="m-sub"><span class="ctag" id="carbTag">—</span></div>
       </div>
     </div>
     <div class="macros2">
-      <div class="macro2">
-        <div class="m2-top"><span class="m2-lab"><span class="pip" id="fatDot" style="background:#e0746a"></span>Fat</span><span class="m2-val num"><span id="fatEaten">0</span> / <span id="fatTarget">—</span>g</span></div>
+      <div class="macro2" data-macro="fat">
+        <div class="m2-top"><span class="m2-lab"><span class="pip" id="fatDot" style="background:#e0746a"></span>Fat<span class="m-info">i</span></span><span class="m2-val num"><span id="fatEaten">0</span> / <span id="fatTarget">—</span>g</span></div>
         <div class="m-barrow"><span class="m-bar"><i class="m-fill" id="fatBar"></i><i class="m-over" id="fatOver"></i></span><span class="m-pct" id="fatPct">0%</span></div>
       </div>
-      <div class="macro2">
-        <div class="m2-top"><span class="m2-lab"><span class="pip" id="fibDot" style="background:#7bbf6a"></span>Fibre</span><span class="m2-val num"><span id="fibEaten">0</span> / <span id="fibTarget">—</span>g</span></div>
+      <div class="macro2" data-macro="fibre">
+        <div class="m2-top"><span class="m2-lab"><span class="pip" id="fibDot" style="background:#7bbf6a"></span>Fibre<span class="m-info">i</span></span><span class="m2-val num"><span id="fibEaten">0</span> / <span id="fibTarget">—</span>g</span></div>
         <div class="m-barrow"><span class="m-bar"><i class="m-fill" id="fibBar"></i><i class="m-over" id="fibOver"></i></span><span class="m-pct" id="fibPct">0%</span></div>
       </div>
     </div>
-    <div class="sugarcard">
-      <div class="m2-top"><span class="m2-lab"><span class="pip" id="sugDot" style="background:#e88fb8"></span>Sugar</span><span class="m2-val num"><span id="sugEaten">0</span> / <span id="sugTarget">—</span>g</span></div>
+    <div class="sugarcard" data-macro="sugar">
+      <div class="m2-top"><span class="m2-lab"><span class="pip" id="sugDot" style="background:#e88fb8"></span>Sugar<span class="m-info">i</span></span><span class="m2-val num"><span id="sugEaten">0</span> / <span id="sugTarget">—</span>g</span></div>
       <div class="m-barrow"><span class="m-bar"><i class="m-fill" id="sugBar"></i><i class="m-over" id="sugOver"></i></span><span class="m-pct" id="sugPct">0%</span></div>
       <div class="m-sub"><span class="ctag" id="sugTag">—</span></div>
     </div>
@@ -1350,6 +1372,16 @@
     <button class="ghost" id="pnameCancel" style="margin-top:10px">Cancel</button>
   </div>
 
+  <!-- macro body-composition insight (tap a macro card) -->
+  <div class="sheet" id="insightSheet">
+    <h2 id="miTitle">Carbs</h2>
+    <p class="s" id="miSub">What today's number means for your body composition</p>
+    <div class="mi-chips" id="miChips"></div>
+    <div class="mi-body" id="miBody"></div>
+    <div class="mi-do" id="miDo"></div>
+    <button class="ghost" id="miClose" style="margin-top:14px">Close</button>
+  </div>
+
   <!-- connecting overlay -->
   <div class="connecting" id="connecting">
     <div class="connecting-card">
@@ -1365,7 +1397,7 @@
    Bump APP_VERSION on every deploy. If the running copy is older than the
    file just loaded, we clear caches and hard-reload once so installed PWAs
    pick up the new build instead of serving a stale index.html. */
-const APP_VERSION='2026-07-02.1';
+const APP_VERSION='2026-07-03.3';
 try{ document.addEventListener('DOMContentLoaded',()=>{ const v=document.getElementById('spVersion'); if(v) v.textContent='v'+APP_VERSION; }); }catch(e){}
 (function versionGate(){
   try{
@@ -1989,6 +2021,187 @@ function render({water,protein,carbG,fatTarget,phys,tdee,intake,deficit,flooredH
     : `Your target is built from your height, weight and goal. Connect Whoop so it uses your real daily burn instead of an estimate.`;
 }
 
+/* ---------- Macro insight sheets (tap any macro card) ----------
+   Rule-based body-composition education, grounded in mainstream evidence:
+   energy balance governs fat loss; de novo lipogenesis from carbs is trivial
+   in a deficit; glycogen binds ~3g water per gram; protein has the highest
+   TEF and spares muscle; surplus dietary fat is stored near-directly.
+   No AI call — instant, offline, zero rate-limit cost. */
+function _kcalContext(){
+  const p=_lastPlan; if(!p) return null;
+  const e=eaten(), left=p.intake-e.kcal;
+  let state, label, col;
+  if(e.kcal<=p.intake){ state='deficit'; label=`deficit intact · ${Math.round(left)} kcal of room`; col='#3ee19a'; }
+  else if(e.kcal<p.tdee){ state='partial'; label=`${Math.round(-left)} over target, still under your burn`; col='#e8d24a'; }
+  else { state='surplus'; label=`over your ${p.tdee} kcal burn — surplus today`; col='#e0683b'; }
+  return {e, plan:p, state, label, col, kcal:Math.round(e.kcal), intake:p.intake};
+}
+function _miBand(pct, kind){
+  if(kind==='protein') return pct>=95?'hit':pct>=70?'closing':'low';
+  if(pct>130) return 'high';
+  if(pct>105) return 'over';
+  if(pct>=85) return 'near';
+  return 'room';
+}
+const MACRO_INSIGHT={
+  protein(c,x){
+    const gkg=(x.target/Math.max(1,curWeight())).toFixed(1);
+    if(x.noMeals) return {
+      paras:[`Protein is the one macro that directly <b>protects muscle</b> while you're in a deficit. Without enough of it, some of the weight you lose comes from lean mass, not fat — the scale drops but body composition barely improves.`,
+        `Your ${x.target}g target (~${gkg} g/kg) is set for muscle retention. It also burns the most in digestion — roughly a quarter of protein's calories are spent processing it — and it's the most filling macro per calorie.`],
+      doNext:`Anchor every meal on a protein source first. Hitting ${x.target}g makes the rest of the day almost self-correcting.`};
+    if(x.band==='low'&&(c.e.kcal/c.intake*100)>x.pct+20) return {
+      paras:[`Your calories are running <b>ahead of your protein</b> — ${Math.round(c.e.kcal/c.intake*100)}% of the budget spent, but only ${Math.round(x.pct)}% of your protein banked. That gap is the real body-composition risk today, more than any single macro being over.`,
+        `In a deficit, low protein means a bigger share of weight lost comes from <b>muscle instead of fat</b>. You'd lose scale weight but keep a similar body-fat percentage — the opposite of recomposition.`],
+      doNext:`Make your remaining calories protein-heavy: chicken, fish, eggs, tofu, or a shake. You need ${Math.max(0,Math.round(x.target-x.eaten))}g more with ${Math.max(0,Math.round(c.intake-c.e.kcal))} kcal of room.`};
+    if(x.band==='low') return {
+      paras:[`You're at ${Math.round(x.eaten)}g of ${x.target}g. Plenty of day may remain — but protein is the macro you can't cram at 10pm, so it pays to bank it steadily.`,
+        `In a deficit, adequate protein is what decides whether the weight you lose is <b>fat or muscle</b>. It also keeps hunger down harder than carbs or fat, which makes the deficit itself easier to hold.`],
+      doNext:`Aim for 30–45g per meal. ${Math.max(0,Math.round(x.target-x.eaten))}g to go.`};
+    if(x.band==='closing') return {
+      paras:[`${Math.round(x.eaten)}g down, ${Math.max(0,Math.round(x.target-x.eaten))}g to go — on pace. Keeping protein near target in a deficit is what tips weight loss toward <b>fat loss specifically</b>.`,
+        `Bonus: about 25–30% of protein's calories are burned just digesting it, the highest of any macro. High-protein days quietly widen your real deficit.`],
+      doNext:`One more solid protein serving closes it out.`};
+    return {
+      paras:[`Target hit${x.pct>115?' — and then some':''}. Going over on protein is the <b>most harmless overshoot</b> there is: it's the hardest macro for the body to store as fat, the most filling, and the most expensive to digest.`,
+        c.state==='deficit'
+          ? `With calories still in deficit, today is close to ideal for body composition — muscle protected, fat stores paying the difference.`
+          : `The only caveat: protein calories still count. Today the overshoot helped push calories ${c.state==='surplus'?'over your burn':'past target'}, so watch total intake rather than the protein itself.`],
+      doNext:c.state==='deficit'?`Nothing to fix. This is the day working as designed.`:`Keep the protein habit — trim the extra calories from carbs or fat instead.`};
+  },
+  carbs(c,x){
+    if(x.noMeals) return {
+      paras:[`Carbs fill whatever calorie room is left after protein and fat — that's why your ${x.target}g target moves with your burn. They fuel training and top up <b>glycogen</b>, the energy stored in muscle.`,
+        `Carbs don't inherently cause fat gain. Only total calories do — carbs just make it easy to overshoot because they're everywhere and easy to eat.`],
+      doNext:`Spend them where they work: around activity, and on whole sources with fibre.`};
+    if(x.band==='over'||x.band==='high'){
+      if(c.state==='deficit'){
+        const proPct=x.plan.protein>0? c.e.p/x.plan.protein*100:100;
+        return {
+          paras:[`You're ${Math.round(x.eaten-x.target)}g over on carbs — but your calories are <b>still in deficit</b>, and that's what decides fat loss. Excess carbs in a deficit get burned for fuel or banked as glycogen; converting carbs to body fat (de novo lipogenesis) is metabolically expensive and <b>barely happens</b> when total energy is negative.`,
+            `Expect the scale to blip up ${x.eaten-x.target>60?'noticeably ':''}tomorrow though: each gram of stored glycogen binds ~3g of water. That's <b>water weight, not fat</b> — it flushes out within a day or two.`+(proPct<80?` The real thing to watch is that carbs are crowding out protein today (${Math.round(proPct)}% of target) — that's the actual body-composition risk.`:` Protein's on track, so muscle retention isn't threatened — body composition is still moving the right way today.`)],
+          doNext:proPct<80?`Make what's left of today protein-first. The carb overshoot itself is a non-issue.`:`Nothing to undo. Don't ignore tomorrow's scale blip — expect it, and trust the weekly trend.`};
+      }
+      if(c.state==='partial') return {
+        paras:[`Carbs pushed you ${Math.round(c.kcal-c.intake)} kcal past your eating target — but you're still <b>under your total burn</b>, so today still nets a small deficit. Fat loss slows rather than reverses.`,
+          `No fat gained today; you've just spent some of tomorrow's progress. High-carb days also refill glycogen and bind water, so a scale bump tomorrow is <b>storage, not fat</b>.`],
+        doNext:`Call today done rather than "ruined" — that framing is what prevents the real damage (the give-up binge). Normal target tomorrow.`};
+      return {
+        paras:[`Today you're over your <b>total burn</b>, and carbs led the charge. The body handles a surplus like this: it burns the incoming carbs first and <b>stores the dietary fat you ate alongside them</b> — so the day nets some fat gain, indirectly.`,
+          `One day of surplus is noise; body composition answers to the <b>weekly average</b>. A single ${Math.round(c.kcal-x.plan.tdee)} kcal overage is roughly ${Math.round((c.kcal-x.plan.tdee)/77)/100} kg of actual tissue — recoverable within days.`],
+        doNext:`Don't compensate with a crash day. Normal target tomorrow, and the week still lands in deficit.`};
+    }
+    if(x.band==='near') return {
+      paras:[`Carbs are close to their allotment (${Math.round(x.pct)}%). They filled the calorie room left after protein and fat — exactly their job in this plan.`,
+        `Kept inside the budget, carbs are purely fuel: they spare protein for muscle building instead of energy, and keep training quality up, which protects lean mass in a deficit.`],
+      doNext:`If you eat again today, lean protein or vegetables — the carb column is essentially spent.`};
+    return {
+      paras:[`${Math.round(x.eaten)}g of ${x.target}g — plenty of room. Carbs are your plan's flexible column: they expand or shrink with your burn while protein and fat stay anchored.`,
+        `Low-carb days in a deficit drain glycogen, which drops water weight — if the scale dips sharply tomorrow, some of it is <b>water, not fat</b>, the mirror image of a high-carb blip.`],
+      doNext:`Spend remaining carbs on whole sources — rice, fruit, oats — ideally near activity.`};
+  },
+  fat(c,x){
+    const gkg=curWeight()? (x.eaten/curWeight()):null;
+    if(x.noMeals) return {
+      paras:[`Dietary fat runs your <b>hormones</b> — testosterone, oestrogen — and absorbs vitamins A, D, E and K. Your ${x.target}g target (~25% of intake) keeps that machinery running inside a deficit.`,
+        `It's also the densest macro at <b>9 kcal per gram</b>, more than double carbs or protein — which is why fat overshoots eat a calorie budget fastest.`],
+      doNext:`Favour fats that come attached to food — eggs, fish, nuts — over fats added to food (oil, butter), which stack up invisibly.`};
+    if(x.band==='over'||x.band==='high'){
+      if(c.state==='deficit') return {
+        paras:[`${Math.round(x.eaten-x.target)}g over on fat — but calories are still under target, so the ledger still favours you. Yes, dietary fat is the macro your body stores <b>most directly</b>… but in a deficit it's pulling more out of fat stores than it's putting in. Net body fat still goes <b>down</b> today.`,
+          `The practical issue is density: at 9 kcal/g, a fat overshoot burns through budget ~2.25× faster than carbs. That's the mechanism to respect — not fat itself being "fattening".`],
+        doNext:`Check where it snuck in — cooking oil, sauces, santan, and fried items are the usual invisible sources. One swap there buys back a lot of budget.`};
+      return {
+        paras:[`Fat is over target on a day where calories are ${c.state==='surplus'?'over your burn':'past your eating target'} — the least favourable combo. In a true surplus, excess dietary fat is stored as body fat almost <b>directly</b>, at ~96% efficiency, unlike carbs which get burned first.`,
+          `Still: one day is a rounding error. ${c.state==='surplus'?`Today's overage is worth grams of tissue, not kilos.`:`You're still under your total burn, so today likely nets zero gain — just paused progress.`}`],
+      doNext:`Tomorrow, target the delivery vehicles: fried → grilled, santan-heavy → clear soups, dressing on the side. Same food culture, less invisible fat.`};
+    }
+    if(gkg!==null&&gkg<0.4&&(c.e.kcal/c.intake)>0.7) return {
+      paras:[`Fat's running very low today (~${gkg.toFixed(1)} g/kg) with most of your calories already spent. The occasional low-fat day is harmless — but <b>chronically</b> under ~0.5 g/kg can suppress hormone production and vitamin absorption.`,
+        `In a deficit that matters: hormones are already under mild pressure from the calorie shortfall itself.`],
+      doNext:`Add a yolk, some nuts, or oily fish today. Cheap insurance, small calories.`};
+    return {
+      paras:[`Fat's ${x.band==='near'?'closing in on':'well within'} target (${Math.round(x.pct)}%). Enough to keep hormones and vitamin absorption working; not so much that its 9 kcal/g density squeezes out protein and carbs.`,
+        `Fat has almost no effect on fullness per calorie compared to protein — which is why the plan caps it at ~25% of intake rather than letting it float.`],
+      doNext:`Steady as is. Whole-food fats over added oils where you can.`};
+  },
+  fibre(c,x){
+    if(x.noMeals) return {
+      paras:[`Fibre's job in a fat-loss phase is <b>appetite control</b>: it slows digestion, flattens glucose spikes, and keeps you full on fewer calories. Your ${x.target}g target follows the standard ~14g per 1,000 kcal guideline.`,
+        `It doesn't change body composition directly — it changes <b>adherence</b>, which is what actually decides the outcome.`],
+      doNext:`Vegetables, fruit, oats, beans. Easiest macro to hit if it's on every plate.`};
+    if(x.band==='room'&&(c.e.kcal/c.intake)>0.6) return {
+      paras:[`Fibre's lagging (${Math.round(x.eaten)}g of ${x.target}g) while most of the budget's been spent. Low-fibre days don't cost you fat loss today — they cost you <b>tomorrow</b>, when faster digestion and sharper glucose swings make hunger louder.`,
+        `Most diet "failures" aren't willpower failures; they're hunger-management failures. Fibre is the cheapest hunger tool you have.`],
+      doNext:`Add vegetables or fruit to your next meal — ulam, a side of greens, or just an apple gets you moving.`};
+    if(x.band==='over'||x.band==='high') return {
+      paras:[`Over on fibre — genuinely fine, and mildly helpful: a small share of fibre's calories aren't even absorbed. If today's a sudden jump from your usual intake, expect some <b>bloating and a heavier scale</b> tomorrow — that's gut content and water, not fat.`,
+        `High-fibre days usually mean high food <b>volume</b> per calorie, which is exactly the pattern that makes a deficit feel easy.`],
+      doNext:`Drink a bit more water — fibre needs it to do its job comfortably.`};
+    return {
+      paras:[`${Math.round(x.eaten)}g of ${x.target}g — decent trajectory. Every gram here is buying you satiety, steadier energy, and an easier time holding your deficit tomorrow.`,
+        `Fibre also feeds the gut bacteria that regulate appetite hormones — an indirect but real lever on how hungry your deficit feels.`],
+      doNext:`Keep plants on every plate and this hits itself.`};
+  },
+  sugar(c,x){
+    if(x.noMeals) return {
+      paras:[`Your ${x.target}g limit follows the WHO free-sugar guideline (~10% of calories). Sugar isn't uniquely fattening — but its calories are the <b>least filling</b> you can buy, which makes overshooting the whole budget easier.`,
+        `Sweet drinks are the main trap: liquid sugar barely registers with appetite at all.`],
+      doNext:`Spend the allowance deliberately — in food you'll actually taste, not drinks you won't notice.`};
+    if(x.band==='over'||x.band==='high'){
+      if(c.state==='deficit') return {
+        paras:[`Sugar's ${Math.round(x.eaten-x.target)}g over — but calories are still in deficit, so today's sugar <b>will not stop fat loss</b>. Energy balance doesn't carve out an exception for sugar; in a deficit it's burned like any other carb.`,
+          `The risk is behavioural, not metabolic: the spike-and-dip pattern drives <b>cravings for the next sweet thing</b>, and sugar calories displace filling, nutritious ones. It threatens tomorrow's deficit more than today's.`],
+        doNext:`No damage done. Just notice the source — if it was a drink, that's the highest-value swap in your whole diet (the Coke Zero principle).`};
+      return {
+        paras:[`Sugar's over its limit on a day calories went ${c.state==='surplus'?'over your burn':'past target'} — and that's usually not a coincidence. Sugar is the easiest way to overeat: minimal fullness, maximal ease, often liquid.`,
+          `The fix isn't guilt, it's plumbing: find <b>which item</b> carried the sugar and swap or shrink it. One targeted change beats a vague "less sugar" resolution.`],
+        doNext:`Check the food log for the biggest sugar line item — that one swap likely rescues both the sugar and the calories.`};
+    }
+    return {
+      paras:[`${Math.round(x.eaten)}g of your ${x.target}g limit — inside the WHO guideline. At this level, sugar is just part of your carb intake; the body doesn't treat it differently in any way that matters for fat loss.`,
+        `Staying under here mostly means your calories came from food that actually fills you — that's the real win it signals.`],
+      doNext:`Room for something sweet if you want it. A planned treat beats an unplanned one.`};
+  }
+};
+function openMacroInsight(kind){
+  const c=_kcalContext();
+  if(!c){ toast('Set up your plan first'); return; }
+  const targets={
+    protein:{name:'Protein', eaten:c.e.p,  target:c.plan.protein},
+    carbs:  {name:'Carbs',   eaten:c.e.c,  target:c.plan.carbG},
+    fat:    {name:'Fat',     eaten:c.e.f,  target:c.plan.fatTarget},
+    fibre:  {name:'Fibre',   eaten:c.e.fb, target:Math.round(c.intake/1000*14)},
+    sugar:  {name:'Sugar',   eaten:c.e.sg, target:Math.max(30,Math.round(c.intake*0.10/4))},
+  };
+  const t=targets[kind]; if(!t) return;
+  const pct=t.target>0? t.eaten/t.target*100:0;
+  const x={...t, pct, band:_miBand(pct,kind), noMeals:todayMeals().length===0, plan:c.plan};
+  const ins=MACRO_INSIGHT[kind](c,x);
+
+  // title + macro status chip colour
+  const over=Math.round(t.eaten-t.target);
+  document.getElementById('miTitle').textContent =
+    x.noMeals? t.name
+    : kind==='protein'
+      ? (x.band==='hit'? `${t.name} · target hit` : `${t.name} · ${Math.max(0,Math.round(t.target-t.eaten))}g to go`)
+      : (over>0? `${t.name} · ${over}g over` : `${t.name} · ${Math.abs(over)}g of room`);
+  const mcol = kind==='protein'
+    ? (x.band==='hit'?'#3ee19a':x.band==='closing'?'#a8d94f':'#e8d24a')
+    : (pct>130?'#c43d28':pct>105?'#e0683b':pct>=85?'#e0913b':'#3ee19a');
+  const chip=(label,col)=>`<span class="mi-chip" style="color:${col};border-color:${col}44;background:${col}14"><span class="dot"></span>${label}</span>`;
+  document.getElementById('miChips').innerHTML =
+    chip(`${t.name} ${Math.round(t.eaten)} / ${t.target}g`, x.noMeals?'#8a9a90':mcol) +
+    chip(`Calories ${c.kcal} / ${c.intake} · ${c.label}`, x.noMeals?'#8a9a90':c.col);
+  document.getElementById('miBody').innerHTML = ins.paras.map(p=>`<p>${p}</p>`).join('');
+  document.getElementById('miDo').innerHTML = `<span>Do next</span>${ins.doNext}`;
+  openSheet(document.getElementById('insightSheet'));
+}
+document.querySelectorAll('[data-macro]').forEach(el=>{
+  el.addEventListener('click',()=>openMacroInsight(el.dataset.macro));
+});
+document.getElementById('miClose').onclick=()=>closeSheets();
+
 /* ---------- Recovery nutrition (advice only — targets stay fixed) ----------
    WHOOP recovery bands: green ≥67, yellow 34–66, red ≤33.
    Guidance is rule-based and grounded in mainstream sports-nutrition consensus,
@@ -2191,7 +2404,7 @@ function renderPredict(){
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1900);}
 function openSheet(el){$('scrim').classList.add('on');el.classList.add('on');}
-function closeSheets(){$('scrim').classList.remove('on');['weighSheet','setupSheet','foodSheet','aiSheet','methodSheet','searchSheet','manualSheet','backfillSheet','mealsSheet','chatSheet','scanSheet','nameSheet','pnameSheet'].forEach(id=>$(id).classList.remove('on'));if(typeof stopScanner==='function')stopScanner();}
+function closeSheets(){$('scrim').classList.remove('on');['weighSheet','setupSheet','foodSheet','aiSheet','methodSheet','searchSheet','manualSheet','backfillSheet','mealsSheet','chatSheet','scanSheet','nameSheet','pnameSheet','insightSheet'].forEach(id=>$(id).classList.remove('on'));if(typeof stopScanner==='function')stopScanner();}
 $('scrim').onclick=closeSheets;
 
 /* ---------- water logging ---------- */
