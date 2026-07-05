@@ -806,6 +806,7 @@
     font-size:13px;font-weight:700;padding:11px;border-radius:11px;cursor:pointer}
   .cal-add:active{border-color:var(--goal);color:var(--goal)}
 </style>
+<script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js" defer></script>
 </head>
 <body>
   <!-- ===== SPLASH ===== calorie-bank story: ring builds/spends, then resolves into the W logo -->
@@ -2805,29 +2806,43 @@ let _searchRes=[];
 $('searchGo').onclick=runSearch;
 $('searchInput').addEventListener('keydown',e=>{ if(e.key==='Enter') runSearch(); });
 
-/* BARCODE scanner */
-let _scanStream=null,_scanLoop=null;
+/* BARCODE scanner — uses ZXing (pure JS) instead of the native BarcodeDetector API,
+   since Safari/WebKit (and therefore every browser on iOS/iPadOS) has never implemented
+   BarcodeDetector. Without this, scanning silently failed and always fell back to manual entry. */
+let _scanReader=null;
 async function openScanner(){
   $('scanSub').textContent='Point your camera at the product barcode.';
   openSheet($('scanSheet'));
-  if(!('BarcodeDetector' in window)){
-    $('scanSub').textContent='Your browser can\'t scan here — enter the number below.';
-    return scanManualPrompt(true);
-  }
   try{
-    _scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    const v=$('scanVideo'); v.srcObject=_scanStream; await v.play();
-    const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128']});
-    _scanLoop=setInterval(async()=>{
-      try{ const codes=await det.detect(v);
-        if(codes.length){ const code=codes[0].rawValue; stopScanner(); lookupBarcode(code); }
-      }catch(_){}
-    },600);
-  }catch(e){ $('scanSub').textContent='Camera unavailable — enter the number below.'; }
+    if(!window.ZXing) await waitForZXing(4000);
+    if(!window.ZXing) throw new Error('scanner library failed to load');
+    const hints=new Map();
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[
+      ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
+      ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E,
+      ZXing.BarcodeFormat.CODE_128
+    ]);
+    const codeReader=new ZXing.BrowserMultiFormatReader(hints);
+    _scanReader=codeReader;
+    await codeReader.decodeFromConstraints(
+      {video:{facingMode:'environment'}}, 'scanVideo',
+      (result,err)=>{ if(result){ const code=result.getText(); stopScanner(); lookupBarcode(code); } }
+    );
+  }catch(e){
+    $('scanSub').textContent='Camera unavailable — enter the number below.';
+  }
+}
+function waitForZXing(timeoutMs){
+  return new Promise(resolve=>{
+    const start=Date.now();
+    (function poll(){
+      if(window.ZXing || Date.now()-start>timeoutMs) return resolve();
+      setTimeout(poll,100);
+    })();
+  });
 }
 function stopScanner(){
-  if(_scanLoop){clearInterval(_scanLoop);_scanLoop=null;}
-  if(_scanStream){_scanStream.getTracks().forEach(t=>t.stop());_scanStream=null;}
+  if(_scanReader){ try{ _scanReader.reset(); }catch(e){} _scanReader=null; }
 }
 async function lookupBarcode(code){
   closeSheets();
