@@ -374,6 +374,8 @@
     background:linear-gradient(155deg,#13251c,#0f1a16);border:1px solid #234a3a;border-radius:var(--r);
     padding:13px 15px;margin-bottom:14px;color:var(--ink)}
   .homebank.milestone{border-color:rgba(240,169,59,.45);box-shadow:0 0 0 1px rgba(240,169,59,.2)}
+  .homebank.debt{border-color:rgba(224,87,92,.4);box-shadow:0 0 0 1px rgba(224,87,92,.18)}
+  .homebank.debt .homebank-bal{color:#e0575c}
   .homebank:active{transform:scale(.99)}
   .homebank-l{flex:1;min-width:0}
   .homebank-lab{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#5fae8c;font-weight:700}
@@ -386,15 +388,21 @@
   /* yesterday food grade */
   .grade{display:flex;gap:13px;align-items:center;background:var(--panel);border:1px solid var(--line);
     border-radius:var(--r);padding:13px 15px;margin-bottom:14px}
+  .grade.dismissed{display:none!important}
   .grade-badge{flex-shrink:0;width:48px;height:48px;border-radius:13px;display:grid;place-items:center;
     font-size:23px;font-weight:800;letter-spacing:-0.02em;border:1.5px solid currentColor}
-  .grade-body{min-width:0}
+  .grade-body{min-width:0;flex:1}
   .grade-head{font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);
     display:flex;align-items:center;gap:7px;margin-bottom:3px}
   .grade-ai{font-size:9px;font-weight:800;color:#08130d;background:var(--ink-faint);
     padding:2px 5px;border-radius:5px;letter-spacing:0.04em}
   .grade-txt{font-size:13px;line-height:1.45;color:var(--ink)}
   .grade.load .grade-txt::after{content:'▍';animation:blink 1s steps(1) infinite;color:var(--ink-faint)}
+  .grade-dismiss{flex-shrink:0;width:26px;height:26px;border-radius:8px;border:1px solid var(--line);
+    background:transparent;color:var(--ink-faint);display:grid;place-items:center;cursor:pointer;
+    padding:0;-webkit-tap-highlight-color:transparent}
+  .grade-dismiss:active{transform:scale(.9);background:var(--line);color:var(--goal)}
+  .grade-dismiss svg{width:15px;height:15px}
 
   /* intake consumed */
   .intake-sub{font-size:12px;color:var(--ink-dim);margin:8px 0 14px}
@@ -428,6 +436,13 @@
     display:flex;align-items:center;justify-content:center;gap:8px}
   .askbtn:active{transform:scale(.98);border-color:var(--goal)}
   .askbtn svg{color:var(--goal)}
+  .daydone{width:100%;margin-top:9px;background:transparent;border:1px solid var(--line);
+    color:var(--ink-dim);font-size:13px;font-weight:600;padding:11px;border-radius:13px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px}
+  .daydone:active{transform:scale(.98)}
+  .daydone svg{color:var(--ink-faint)}
+  .daydone.done{background:rgba(62,225,154,.08);border-color:rgba(62,225,154,.35);color:var(--goal)}
+  .daydone.done svg{color:var(--goal)}
   /* diet chat */
   .chatlog{max-height:42vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:9px;
     margin:4px 0 12px;padding:2px}
@@ -579,6 +594,9 @@
   .bank-tier{font-size:12px;font-weight:800}
   .bank-bal{display:flex;align-items:baseline;gap:8px;margin:7px 0 3px}
   .bank-bal .num{font-size:38px;font-weight:800;color:var(--goal);line-height:1;font-variant-numeric:tabular-nums}
+  .bank-bal .num.debt{color:#e0575c}
+  .bank.debt{border-color:rgba(224,87,92,.4)}
+  .bank.debt .bank-fill{background:linear-gradient(90deg,#e0575c,#f08b8f)}
   .bank-unit{font-size:13px;color:var(--ink-dim);font-weight:600}
   .bank-next{font-size:13px;color:var(--ink);line-height:1.45;margin-top:6px}
   .bank-next b{color:var(--goal);font-weight:800}
@@ -603,6 +621,18 @@
   .bank-milestone li{margin:2px 0}
   .bank-note{font-size:10.5px;color:var(--ink-faint);line-height:1.5;margin-top:11px;
     padding-top:10px;border-top:1px solid rgba(255,255,255,.05)}
+  .bank-sub{font-size:12.5px;color:var(--ink-dim);line-height:1.45;margin-top:1px}
+  .bank-explain{margin-top:12px}
+  .bank-explain summary{font-size:12.5px;color:var(--goal);font-weight:700;cursor:pointer;
+    list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
+  .bank-explain summary::-webkit-details-marker{display:none}
+  .bank-explain summary::after{content:'›';font-size:15px;transition:transform .2s ease;color:var(--ink-faint)}
+  .bank-explain[open] summary::after{transform:rotate(90deg)}
+  .bank-explain-body{font-size:12.5px;color:var(--ink-dim);line-height:1.6;margin-top:9px;
+    padding:11px 13px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px}
+  .bank-explain-body b{color:var(--ink);font-weight:700}
+  .bank-explain-body ul{margin:7px 0 0;padding-left:17px}
+  .bank-explain-body li{margin:4px 0}
   .predict{background:linear-gradient(160deg,#10211a,#101a18);border:1px solid #1f3b30;    border-radius:var(--r);padding:16px;margin-bottom:14px}
   .predict .label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#5fae8c}
   .predict .date{font-size:28px;margin:4px 0 2px;color:var(--goal)}
@@ -878,6 +908,19 @@
     <div class="rc-foods" id="recovFoods" style="display:none"></div>
   </div>
 
+  <div class="grade" id="gradeCard" style="display:none">
+    <div class="grade-badge" id="gradeBadge">—</div>
+    <div class="grade-body">
+      <div class="grade-head">
+        <span class="grade-headtxt">Yesterday's food <span class="grade-ai">AI</span></span>
+      </div>
+      <div class="grade-txt" id="gradeTxt">—</div>
+    </div>
+    <button class="grade-dismiss" id="gradeDismiss" aria-label="Dismiss yesterday's food">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
+    </button>
+  </div>
+
   <div class="coach" id="coachCard">
     <div class="coach-head">
       <span class="coach-ai">AI</span>
@@ -897,14 +940,6 @@
     </div>
     <span class="homebank-chev">›</span>
   </button>
-
-  <div class="grade" id="gradeCard" style="display:none">
-    <div class="grade-badge" id="gradeBadge">—</div>
-    <div class="grade-body">
-      <div class="grade-head">Yesterday's food <span class="grade-ai">AI</span></div>
-      <div class="grade-txt" id="gradeTxt">—</div>
-    </div>
-  </div>
 
   <div class="intake">
     <div class="ico"><span class="pip" style="background:var(--goal)"></span>Eat to this much today · to lose weight</div>
@@ -970,6 +1005,10 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add food
     </button>
+    <button class="daydone" id="dayDoneBtn" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
+      <span id="dayDoneLabel">Done eating for today</span>
+    </button>
     <button class="askbtn" id="askBtn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
       Ask about your day
@@ -1005,7 +1044,8 @@
         <div class="bank-label">Calorie Bank</div>
         <div class="bank-tier" id="bankTier"></div>
       </div>
-      <div class="bank-bal"><span class="num" id="bankBal">0</span><span class="bank-unit">kcal banked</span></div>
+      <div class="bank-bal"><span class="num" id="bankBal">0</span><span class="bank-unit" id="bankUnit">kcal banked</span></div>
+      <div class="bank-sub" id="bankSub"></div>
       <div class="bank-next" id="bankNext"></div>
       <div class="bank-track"><div class="bank-fill" id="bankFill"></div></div>
       <div class="bank-pace" id="bankPace"></div>
@@ -1014,7 +1054,20 @@
         <div class="bank-spend-list" id="spendList"></div>
       </div>
       <div class="bank-milestone" id="bankMilestone" style="display:none"></div>
-      <div class="bank-note">A cumulative estimate of fat-loss progress — not guaranteed weight loss. Banked flexibility is yours to spend on a treat or spread over a few days.</div>
+      <details class="bank-explain">
+        <summary>How the Calorie Bank works</summary>
+        <div class="bank-explain-body">
+          <div>Every day you complete adjusts the balance by <b>target − eaten</b>. Finish under target and the leftover is added; finish over target and the difference is subtracted.</div>
+          <ul>
+            <li>It's a real running net, not a one-way total — over-target days pull the balance back down, they don't just get ignored</li>
+            <li>The balance <b>can go negative</b>. That's not a lockout, it just means you've eaten more than your targets lately — a day or two under target brings it back toward zero</li>
+            <li>Today's numbers don't count yet — a day only settles once it rolls over at midnight</li>
+            <li>7,700 kcal ≈ 1 kg of fat-loss equivalent — your balance is measured against that to reach each milestone</li>
+            <li>Once you've banked a healthy cushion, this card will suggest a treat-sized amount you can spend without undoing your progress</li>
+          </ul>
+        </div>
+      </details>
+      <div class="bank-note">A cumulative estimate of fat-loss progress — not guaranteed weight loss. The balance can run negative on over-target days; banked flexibility is yours to spend on a treat or spread over a few days.</div>
     </div>
 
     <div class="predict" id="predictCard">
@@ -1419,7 +1472,7 @@ const KEY='leanday.v1';
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
 const save=s=>localStorage.setItem(KEY,JSON.stringify(s));
 let S=Object.assign({sex:'m',height:null,age:null,goal:null,months:null,deficit:500,
-  weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null},load());
+  weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null,dayCompleted:{}},load());
 // migrate any old per-provider Gemini key to the single key
 if(!S.aiKey && S.aiKeys && S.aiKeys.gemini){ S.aiKey=S.aiKeys.gemini; delete S.aiKeys; save(S); }
 function curKey(){ return S.aiKey||''; }
@@ -2012,6 +2065,7 @@ function render({water,protein,carbG,fatTarget,phys,tdee,intake,deficit,flooredH
   renderPredict();
   renderRecovery(phys.recovery);
   renderHomeBank();
+  renderDayDone();
   // current weight + why line
   const cw=curWeight();
   document.getElementById('curW').textContent = cw? cw.toFixed(1)+' kg':'— kg';
@@ -2903,6 +2957,12 @@ function setCoachDismissed(on){ try{ if(on) localStorage.setItem('whoopdiet.coac
 (function(){ const b=$('coachDismiss'); if(b) b.onclick=(e)=>{ e.stopPropagation();
   setCoachDismissed(true); const c=$('coachCard'); if(c) c.classList.add('dismissed'); }; })();
 
+/* Grade dismissal — resets each day so tomorrow's "yesterday's food" comes back on its own. */
+function gradeDismissed(){ try{ return localStorage.getItem('whoopdiet.gradeDismiss')===_today(); }catch(e){ return false; } }
+function setGradeDismissed(on){ try{ if(on) localStorage.setItem('whoopdiet.gradeDismiss',_today()); else localStorage.removeItem('whoopdiet.gradeDismiss'); }catch(e){} }
+(function(){ const b=$('gradeDismiss'); if(b) b.onclick=(e)=>{ e.stopPropagation();
+  setGradeDismissed(true); const c=$('gradeCard'); if(c) c.classList.add('dismissed'); }; })();
+
 /* Recovery card collapse — persistent (a lasting preference, not a daily thing). */
 function recovCollapsed(){ try{ return localStorage.getItem('whoopdiet.recovCollapsed')==='1'; }catch(e){ return false; } }
 function setRecovCollapsed(on){ try{ localStorage.setItem('whoopdiet.recovCollapsed', on?'1':'0'); }catch(e){} }
@@ -2992,6 +3052,9 @@ function gradeColor(g){ return GRADE_COLORS[g] || (g&&g[0]==='A'?'#3ee19a':g&&g[
 
 async function refreshGrade(plan){
   const card=$('gradeCard'), badge=$('gradeBadge'), txt=$('gradeTxt');
+  // dismissed for today — keep it hidden until the day rolls over
+  if(gradeDismissed()){ card.classList.add('dismissed'); return; }
+  card.classList.remove('dismissed');
   const ym=yesterdayMeals();
   if(typeof DEMO_FALLBACK!=='undefined' && DEMO_FALLBACK && ym.length && !aiReady()){
     card.style.display='flex'; card.classList.remove('load');
@@ -3435,57 +3498,89 @@ function daysLeftInMonth(){
   const end=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   return Math.max(0, end-now.getDate());
 }
+/* Manual "done eating for today" — lets today's day count in the Calorie Bank
+   before midnight, for when the user finishes eating early with no more meals coming. */
+function isDayManuallyCompleted(dk){ return !!(S.dayCompleted && S.dayCompleted[dk]); }
+function markDayComplete(dk){ if(!S.dayCompleted) S.dayCompleted={}; S.dayCompleted[dk]=true; save(S); }
+function unmarkDayComplete(dk){ if(S.dayCompleted) delete S.dayCompleted[dk]; save(S); }
 /* Only completed days deposit into the bank — today is still in progress, so it never counts
-   until it rolls over at midnight. Prevents the bank showing a balance mid-day. */
+   until it rolls over at midnight, unless the user has manually marked it done. */
 function bankDays(){
   const today=dayKey(Date.now());
-  return (S.history||[]).filter(d=>d.kcal>0 && d.target!=null && d.d<today);
+  return (S.history||[]).filter(d=>d.kcal>0 && d.target!=null &&
+    (d.d<today || (d.d===today && isDayManuallyCompleted(d.d))));
 }
 function bankBalance(){
-  // sum of (target - eaten) over completed logged days, counting only days under target (positive deposits)
+  // sum of (target - eaten) over completed logged days — under-target days deposit,
+  // over-target days withdraw. The balance is a real running total and can go negative.
   const h=bankDays();
   let bal=0;
-  h.forEach(d=>{ const dep=d.target-d.kcal; if(dep>0) bal+=dep; });
+  h.forEach(d=>{ bal += (d.target-d.kcal); });
   return {bal:Math.round(bal), days:h.length};
 }
 function bankPacePerDay(){
-  // average daily deposit over the most recent up-to-7 completed days (positive only)
+  // average daily net (deposit or withdrawal) over the most recent up-to-7 completed days
   const h=bankDays().sort((a,b)=>a.d-b.d);
   const recent=h.slice(-7);
   if(!recent.length) return 0;
-  let sum=0; recent.forEach(d=>{ const dep=d.target-d.kcal; if(dep>0) sum+=dep; });
+  let sum=0; recent.forEach(d=>{ sum += (d.target-d.kcal); });
   return sum/recent.length;
 }
 function renderBank(){
   const card=$('bankCard'); if(!card) return;
   const {bal,days}=bankBalance();
-  $('bankBal').textContent=bal.toLocaleString();
+  const inDebt = bal<0;
+  const bankBalEl=$('bankBal');
+  bankBalEl.textContent=bal.toLocaleString();
+  bankBalEl.classList.toggle('debt', inDebt);
+  const unitEl=$('bankUnit');
+  if(unitEl) unitEl.textContent = inDebt ? 'kcal over target' : 'kcal banked';
   const per=bankPacePerDay();
   const consistent=bankConsistent();
   const dayDeficit=(_lastPlan&&_lastPlan.deficit)||500;
-  // current tier + next milestone
-  let reached=null, next=null;
+  // current tier + next milestone (debt never reaches a tier)
+  let reached=null, next=BANK_MILESTONES[0];
   for(const m of BANK_MILESTONES){ if(bal>=m.kcal) reached=m; else { next=m; break; } }
   const tier=$('bankTier');
   tier.textContent = reached? reached.name+' banked' : '';
-  const nextEl=$('bankNext'), fill=$('bankFill'), pace=$('bankPace'), ms=$('bankMilestone');
-  // progress bar always reflects position toward next tier
-  if(next){
+  card.classList.toggle('debt', inDebt);
+  const nextEl=$('bankNext'), fill=$('bankFill'), pace=$('bankPace'), ms=$('bankMilestone'), sub=$('bankSub');
+  // subtitle: always give a plain-language state so the card is never blank
+  if(sub){
+    if(days===0){
+      sub.textContent='Fills in once you complete your first logged day — nothing counts until a day rolls over at midnight.';
+    } else if(inDebt){
+      sub.textContent=`You've eaten ${Math.abs(bal).toLocaleString()} kcal over your targets across logged days. No lockout — days under target subtract from that and bring you back toward zero.`;
+    } else if(bal===0){
+      sub.textContent='Perfectly even so far. Days under target add to this; days over target subtract from it.';
+    } else {
+      sub.textContent='Kcal saved by eating under your target, minus any days you went over — a running net across your logged days.';
+    }
+  }
+  // progress bar always reflects position toward next tier (0% while in debt)
+  if(!inDebt){
     const prevFloor=reached?reached.kcal:0;
     const pct=Math.max(0,Math.min(100,(bal-prevFloor)/(next.kcal-prevFloor)*100));
     fill.style.width=pct.toFixed(1)+'%';
-  } else { fill.style.width='100%'; }
-  // "X until milestone" line: only when consistent AND within ~1 day's deficit of the next tier
-  const remain = next? next.kcal-bal : 0;
-  const nearMiss = next && consistent && remain<=dayDeficit;
-  if(nearMiss){
-    nextEl.style.display='block';
-    nextEl.innerHTML=`<b>${remain.toLocaleString()} kcal</b> to your ${next.name} milestone — almost there.`;
-    if(per>0){ const d=Math.max(1,Math.ceil(remain/per)); pace.style.display='block';
-      pace.innerHTML=`At your pace, about <b>${d} more day${d===1?'':'s'}</b>.`; }
-    else pace.style.display='none';
+  } else { fill.style.width='0%'; }
+  // "X until milestone" line: always shown so the card always has forward-looking info,
+  // wording sharpens to "almost there" when consistent AND within ~1 day's deficit of the next tier
+  const remain = next.kcal-bal;
+  const nearMiss = !inDebt && consistent && remain<=dayDeficit;
+  nextEl.style.display='block';
+  nextEl.innerHTML = nearMiss
+    ? `<b>${remain.toLocaleString()} kcal</b> to your ${next.name} milestone — almost there.`
+    : `<b>${remain.toLocaleString()} kcal</b> to go until your ${next.name} milestone.`;
+  if(per>0){
+    const d=Math.max(1,Math.ceil(remain/per));
+    pace.style.display='block';
+    pace.innerHTML=`At your recent pace, about <b>${d} more day${d===1?'':'s'}</b>.`;
+  } else if(per<0){
+    pace.style.display='block';
+    pace.innerHTML=`Your last few logged days ran <b>over</b> target on average — the balance is moving the wrong way.`;
   } else {
-    nextEl.style.display='none'; pace.style.display='none';
+    pace.style.display='block';
+    pace.innerHTML='Log a few more days to see your pace.';
   }
   // spendable view: a sensible treat allowance + foods that fit, without undoing progress
   renderBankSpend(bal, dayDeficit);
@@ -3512,24 +3607,51 @@ function renderBank(){
 function renderHomeBank(){
   const strip=$('homeBank'); if(!strip) return;
   const {bal}=bankBalance();
+  const inDebt=bal<0;
   const per=bankPacePerDay();
   const consistent=bankConsistent();
   let reached=null; for(const m of BANK_MILESTONES){ if(bal>=m.kcal) reached=m; }
-  // decide message: ease-up (strong) > milestone reached > hidden
+  // decide message: ease-up (strong) > milestone reached > in-debt heads-up > hidden
   const dleft=daysLeftInMonth();
   const onTrack1kg=(bal+per*dleft)>=7700;
-  let msg=null, gold=false;
+  let msg=null, gold=false, debt=false;
   if(reached && reached.kcal>=7700 && consistent && onTrack1kg){
     msg='You can ease up — a cheat meal still keeps you on track for 1\u00A0kg this month.'; gold=true;
   } else if(reached){
     msg=`${reached.name} banked — that's earned flexibility.`; gold=true;
+  } else if(inDebt){
+    msg=`${Math.abs(bal).toLocaleString()} kcal over target lately — a day under target brings it back down.`; debt=true;
   }
   if(!msg){ strip.style.display='none'; return; }
   strip.style.display='flex';
   strip.classList.toggle('milestone',gold);
+  strip.classList.toggle('debt',debt);
   $('homeBankBal').textContent=bal.toLocaleString();
   $('homeBankMsg').textContent=msg;
 }
+/* "Done eating for today" button — only worth showing once at least one meal is logged today */
+function renderDayDone(){
+  const btn=$('dayDoneBtn'); if(!btn) return;
+  const todayK=dayKey(Date.now());
+  if(!todayMeals().length){ btn.style.display='none'; return; }
+  btn.style.display='flex';
+  const done=isDayManuallyCompleted(todayK);
+  btn.classList.toggle('done',done);
+  $('dayDoneLabel').textContent = done
+    ? "Today's counted — tap to undo"
+    : 'Done eating for today';
+}
+(function(){ const b=$('dayDoneBtn'); if(b) b.onclick=()=>{
+  const todayK=dayKey(Date.now());
+  if(isDayManuallyCompleted(todayK)){
+    unmarkDayComplete(todayK);
+    toast("Undone — today will count at midnight as usual");
+  } else {
+    markDayComplete(todayK);
+    toast("Today's counted toward your Calorie Bank");
+  }
+  renderDayDone(); renderBank(); renderHomeBank();
+}; })();
 /* spendable treat view: shows an earned allowance + foods that fit under it */
 function renderBankSpend(bal, dayDeficit){
   const wrap=$('bankSpend'); if(!wrap) return;
