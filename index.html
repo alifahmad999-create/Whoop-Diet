@@ -351,6 +351,23 @@
   .rc-foods b{color:var(--ink);font-weight:600}
 
   /* AI coach — same card language as the recovery card: eyebrow header + roomy body */
+  /* ---- swipeable card stack (yesterday's food ⇄ today's coach) ---- */
+  .cardstack{position:relative;margin-bottom:14px}
+  .cardstack.gone{display:none}
+  .cardstack-viewport{position:relative;overflow:hidden;touch-action:pan-y}
+  .cardstack .stackcard{position:absolute;top:0;left:0;width:100%;margin:0!important;
+    will-change:transform,opacity;transition:transform .34s cubic-bezier(.22,.61,.36,1),opacity .34s ease;
+    box-sizing:border-box}
+  /* the active card also lives in normal flow via a measuring clone height (set by JS on the viewport) */
+  .cardstack .stackcard.front{z-index:2;transform:translateX(0);opacity:1;pointer-events:auto}
+  .cardstack .stackcard.back{z-index:1;transform:translateX(0) scale(.965);opacity:0;pointer-events:none}
+  .cardstack.solo .stackcard.front{position:relative}     /* only one card → normal flow, no absolute */
+  .cardstack .stackcard.swiping{transition:none}
+  .cardstack-dots{display:flex;justify-content:center;gap:7px;margin-top:9px}
+  .cardstack.solo .cardstack-dots{display:none}
+  .csd{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .25s,width .25s}
+  .csd.on{background:var(--goal);width:16px;border-radius:3px}
+
   .coach{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
     padding:15px 16px;margin-bottom:14px}
   .coach.dismissed{display:none!important}
@@ -909,28 +926,38 @@
     <div class="rc-foods" id="recovFoods" style="display:none"></div>
   </div>
 
-  <div class="grade" id="gradeCard" style="display:none">
-    <div class="grade-badge" id="gradeBadge">—</div>
-    <div class="grade-body">
-      <div class="grade-head">
-        <span class="grade-headtxt">Yesterday's food <span class="grade-ai">AI</span></span>
-      </div>
-      <div class="grade-txt" id="gradeTxt">—</div>
-    </div>
-    <button class="grade-dismiss" id="gradeDismiss" aria-label="Dismiss yesterday's food">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
-    </button>
-  </div>
+  <div class="cardstack solo" id="cardStack">
+    <div class="cardstack-viewport" id="cardStackViewport">
 
-  <div class="coach" id="coachCard">
-    <div class="coach-head">
-      <span class="coach-ai">AI</span>
-      <span class="coach-label">Today's coach</span>
-      <button class="coach-dismiss" id="coachDismiss" aria-label="Dismiss today's coach">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
-      </button>
+      <div class="grade stackcard" id="gradeCard" style="display:none">
+        <div class="grade-badge" id="gradeBadge">—</div>
+        <div class="grade-body">
+          <div class="grade-head">
+            <span class="grade-headtxt">Yesterday's food <span class="grade-ai">AI</span></span>
+          </div>
+          <div class="grade-txt" id="gradeTxt">—</div>
+        </div>
+        <button class="grade-dismiss" id="gradeDismiss" aria-label="Dismiss yesterday's food">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
+        </button>
+      </div>
+
+      <div class="coach stackcard front" id="coachCard">
+        <div class="coach-head">
+          <span class="coach-ai">AI</span>
+          <span class="coach-label">Today's coach</span>
+          <button class="coach-dismiss" id="coachDismiss" aria-label="Dismiss today's coach">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
+          </button>
+        </div>
+        <div class="coach-txt" id="coachTxt">Your daily coach appears here once Whoop's connected and you've logged a meal or weigh-in.</div>
+      </div>
+
     </div>
-    <div class="coach-txt" id="coachTxt">Your daily coach appears here once Whoop's connected and you've logged a meal or weigh-in.</div>
+    <div class="cardstack-dots" id="cardStackDots" aria-hidden="true">
+      <span class="csd" data-i="0"></span>
+      <span class="csd" data-i="1"></span>
+    </div>
   </div>
 
   <button class="homebank" id="homeBank" style="display:none">
@@ -3130,6 +3157,9 @@ function prepImage(file){
 /* ---------- AI coach ---------- */
 let _coachKey=null;
 async function refreshCoach(plan){
+  try{ return await _refreshCoach(plan); } finally{ try{ CardStack.sync(); }catch(e){} }
+}
+async function _refreshCoach(plan){
   const card=$('coachCard'), txt=$('coachTxt');
   // dismissed for today — keep it hidden until the day rolls over
   if(coachDismissed()){ card.classList.add('dismissed'); return; }
@@ -3184,17 +3214,120 @@ function _today(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+
 function loadCoachCache(){ try{ const c=JSON.parse(localStorage.getItem('whoopdiet.coachCache')||'{}'); return c.day===_today()?c:{}; }catch(e){ return {}; } }
 function saveCoachCache(c){ try{ c.day=_today(); localStorage.setItem('whoopdiet.coachCache', JSON.stringify(c)); }catch(e){} }
 
-/* Coach dismissal — resets each day so tomorrow's coach comes back on its own. */
+/* Dismissal state — resets each day so tomorrow's cards come back on their own. */
 function coachDismissed(){ try{ return localStorage.getItem('whoopdiet.coachDismiss')===_today(); }catch(e){ return false; } }
 function setCoachDismissed(on){ try{ if(on) localStorage.setItem('whoopdiet.coachDismiss',_today()); else localStorage.removeItem('whoopdiet.coachDismiss'); }catch(e){} }
-(function(){ const b=$('coachDismiss'); if(b) b.onclick=(e)=>{ e.stopPropagation();
-  setCoachDismissed(true); const c=$('coachCard'); if(c) c.classList.add('dismissed'); }; })();
-
-/* Grade dismissal — resets each day so tomorrow's "yesterday's food" comes back on its own. */
 function gradeDismissed(){ try{ return localStorage.getItem('whoopdiet.gradeDismiss')===_today(); }catch(e){ return false; } }
 function setGradeDismissed(on){ try{ if(on) localStorage.setItem('whoopdiet.gradeDismiss',_today()); else localStorage.removeItem('whoopdiet.gradeDismiss'); }catch(e){} }
-(function(){ const b=$('gradeDismiss'); if(b) b.onclick=(e)=>{ e.stopPropagation();
-  setGradeDismissed(true); const c=$('gradeCard'); if(c) c.classList.add('dismissed'); }; })();
+
+/* ---------- card stack: Yesterday's Food (front) ⇄ Today's Coach, swipeable ---------- */
+const CardStack=(function(){
+  const wrap=$('cardStack'), vp=$('cardStackViewport'), dots=$('cardStackDots');
+  const grade=$('gradeCard'), coach=$('coachCard');
+  // order[0] is the front card; grade leads by design
+  let order=[grade,coach];
+  let front=0;                 // index into `order` currently shown
+  let dragging=false, x0=0, y0=0, dx=0, locked=null, w=1;
+
+  function visible(el){
+    if(!el) return false;
+    if(el.classList.contains('dismissed')) return false;
+    if(el===grade && grade.style.display==='none') return false; // grade hides itself when no yesterday data
+    return true;
+  }
+  function activeCards(){ return order.filter(visible); }
+
+  function sizeViewport(f){
+    // viewport height follows the front (visible) card so the flow below doesn't jump
+    const h=f?f.offsetHeight:0;
+    vp.style.height=h?h+'px':'';
+  }
+
+  function sync(){
+    const act=activeCards();
+    if(act.length===0){ wrap.classList.add('gone'); return; }
+    wrap.classList.remove('gone');
+
+    if(act.length===1){
+      // solo: single card in normal flow, no absolute layering, no dots/swipe
+      wrap.classList.add('solo');
+      act[0].classList.add('front'); act[0].classList.remove('back');
+      const other=order.find(c=>c!==act[0]); if(other){ other.classList.remove('front','back'); }
+      vp.style.height='';
+      return;
+    }
+    wrap.classList.remove('solo');
+
+    // clamp front index to a currently-visible card
+    if(!visible(order[front])) front=order.indexOf(act[0]);
+    const f=order[front], b=order[front===0?1:0];
+    f.classList.add('front'); f.classList.remove('back','swiping'); f.style.transform=''; f.style.opacity='';
+    b.classList.add('back');  b.classList.remove('front','swiping'); b.style.transform=''; b.style.opacity='';
+    // dots
+    [...dots.children].forEach((d,i)=>d.classList.toggle('on', i===front));
+    requestAnimationFrame(()=>sizeViewport(f));
+  }
+
+  function go(i){ if(i===front) return; front=i&1; sync(); }
+  function toggle(){ go(front===0?1:0); }
+
+  // ---- pointer / touch swipe ----
+  function start(e){
+    if(wrap.classList.contains('solo')) return;
+    const t=e.touches?e.touches[0]:e;
+    dragging=true; locked=null; dx=0; x0=t.clientX; y0=t.clientY; w=vp.offsetWidth||1;
+    order[front].classList.add('swiping');
+    order[front===0?1:0].classList.add('swiping');
+  }
+  function move(e){
+    if(!dragging) return;
+    const t=e.touches?e.touches[0]:e;
+    const mx=t.clientX-x0, my=t.clientY-y0;
+    if(locked===null){ if(Math.abs(mx)<6 && Math.abs(my)<6) return; locked=Math.abs(mx)>Math.abs(my)?'x':'y'; }
+    if(locked!=='x'){ dragging=false; end(); return; }   // vertical → let the page scroll
+    if(e.cancelable) e.preventDefault();
+    dx=mx;
+    const f=order[front], b=order[front===0?1:0];
+    const p=Math.max(-1,Math.min(1,dx/w));
+    f.style.transform=`translateX(${dx}px)`;
+    f.style.opacity=String(1-Math.abs(p)*0.85);
+    b.style.transform=`translateX(0) scale(${0.965+Math.abs(p)*0.035})`;
+    b.style.opacity=String(Math.abs(p)*0.9);
+  }
+  function end(){
+    if(!dragging && locked!=='x'){ clearSwipe(); return; }
+    dragging=false;
+    const f=order[front], b=order[front===0?1:0];
+    f.classList.remove('swiping'); b.classList.remove('swiping');
+    const flip=Math.abs(dx)>w*0.28;
+    f.style.transform=''; f.style.opacity=''; b.style.transform=''; b.style.opacity='';
+    if(flip) toggle(); else sync();
+    dx=0; locked=null;
+  }
+  function clearSwipe(){
+    order.forEach(c=>{ c.classList.remove('swiping'); c.style.transform=''; c.style.opacity=''; });
+    dx=0; locked=null;
+  }
+
+  vp.addEventListener('touchstart',start,{passive:true});
+  vp.addEventListener('touchmove',move,{passive:false});
+  vp.addEventListener('touchend',end);
+  vp.addEventListener('touchcancel',end);
+  // desktop drag (mouse)
+  vp.addEventListener('mousedown',e=>{ start(e); const mm=ev=>move(ev), mu=()=>{ end(); window.removeEventListener('mousemove',mm); window.removeEventListener('mouseup',mu); }; window.addEventListener('mousemove',mm); window.addEventListener('mouseup',mu); });
+  // tapping a dot jumps to that card
+  [...dots.children].forEach(d=>d.addEventListener('click',()=>go(+d.dataset.i)));
+
+  // dismiss buttons — hide that card for today, restack the rest
+  $('coachDismiss').onclick=e=>{ e.stopPropagation(); setCoachDismissed(true); coach.classList.add('dismissed'); sync(); };
+  $('gradeDismiss').onclick=e=>{ e.stopPropagation(); setGradeDismissed(true); grade.classList.add('dismissed'); sync(); };
+
+  window.addEventListener('resize',()=>requestAnimationFrame(()=>sizeViewport(order[front])));
+
+  return { sync, front:()=>front };
+})();
+// initial layout (before first coach/grade refresh) so front/back + dots are correct on load
+try{ CardStack.sync(); }catch(e){}
 
 /* Recovery card collapse — persistent (a lasting preference, not a daily thing). */
 function recovCollapsed(){ try{ return localStorage.getItem('whoopdiet.recovCollapsed')==='1'; }catch(e){ return false; } }
@@ -3284,6 +3417,9 @@ const GRADE_COLORS={A:'#3ee19a','A-':'#3ee19a','B+':'#8fd14f',B:'#cdd14f','B-':'
 function gradeColor(g){ return GRADE_COLORS[g] || (g&&g[0]==='A'?'#3ee19a':g&&g[0]==='B'?'#cdd14f':g&&g[0]==='C'?'#e0a04f':'#e0683b'); }
 
 async function refreshGrade(plan){
+  try{ return await _refreshGrade(plan); } finally{ try{ CardStack.sync(); }catch(e){} }
+}
+async function _refreshGrade(plan){
   const card=$('gradeCard'), badge=$('gradeBadge'), txt=$('gradeTxt');
   // dismissed for today — keep it hidden until the day rolls over
   if(gradeDismissed()){ card.classList.add('dismissed'); return; }
