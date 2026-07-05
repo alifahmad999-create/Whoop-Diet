@@ -1380,8 +1380,10 @@
     <h2>Scan barcode</h2>
     <p class="s" id="scanSub">Point your camera at the product barcode.</p>
     <div class="scanwrap"><video id="scanVideo" playsinline></video><div class="scanline"></div></div>
-    <button class="ghost" id="scanManual" style="margin-top:14px">Enter barcode number instead</button>
+    <button class="ghost" id="scanLabelPhoto" style="margin-top:14px">📷 Photo of nutrition label instead</button>
+    <button class="ghost" id="scanManual" style="margin-top:10px">Enter barcode number instead</button>
     <button class="ghost" id="closeScan" style="margin-top:10px">Cancel</button>
+    <input type="file" id="labelFile" accept="image/*" capture="environment" hidden>
   </div>
 
   <!-- AI settings sheet (Gemini only) -->
@@ -1473,7 +1475,7 @@ const KEY='leanday.v1';
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
 const save=s=>localStorage.setItem(KEY,JSON.stringify(s));
 let S=Object.assign({sex:'m',height:null,age:null,goal:null,months:null,deficit:500,
-  weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null,dayCompleted:{}},load());
+  weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null,dayCompleted:{},customBarcodes:{}},load());
 // migrate any old per-provider Gemini key to the single key
 if(!S.aiKey && S.aiKeys && S.aiKeys.gemini){ S.aiKey=S.aiKeys.gemini; delete S.aiKeys; save(S); }
 function curKey(){ return S.aiKey||''; }
@@ -1557,7 +1559,27 @@ async function aiEstimateMeal(base64,media){
   return parseJSON(txt);
 }
 
+/* Reads a nutrition facts panel photo (packaging) and pulls out the numbers directly,
+   instead of estimating a whole plate. Product name is a best guess if visible on the pack. */
+const LABEL_PROMPT=`You are reading a nutrition facts / nutrition information panel from a food package photo. Prefer the "Per Serving" column if the panel shows one; otherwise use "Per 100g" and say so in "basis". If any brand or product name is visible anywhere in the photo, include it in "dish" — otherwise leave "dish" as an empty string. Respond with ONLY valid JSON, no prose, no markdown:
+{"dish":"product name if visible, else empty string","basis":"e.g. per 30g serving / per 100g","kcal":0,"protein_g":0,"carb_g":0,"fat_g":0,"fiber_g":0,"sugar_g":0,"confidence":"high|medium|low"}`;
+async function aiEstimateLabel(base64,media){
+  const txt=await aiVision(base64,media,LABEL_PROMPT,600);
+  return parseJSON(txt);
+}
+
 /* ---------- non-photo food sources ---------- */
+/* Local barcode cache — a personal database that grows every time a scan succeeds
+   or a product is entered by hand. Open Food Facts has weak coverage of Malaysian
+   packaged goods, so this is what actually makes repeat scans fast and reliable. */
+function cachedBarcode(code){ return (S.customBarcodes && S.customBarcodes[code]) || null; }
+function cacheBarcode(code, item){
+  if(!S.customBarcodes) S.customBarcodes={};
+  S.customBarcodes[code]={dish:item.dish, brand:item.brand||'', basis:item.basis||'',
+    kcal:item.kcal, protein_g:item.protein_g, carb_g:item.carb_g, fat_g:item.fat_g,
+    fiber_g:item.fiber_g, sugar_g:item.sugar_g, savedAt:Date.now()};
+  save(S);
+}
 /* Open Food Facts: free, no key. Barcode lookup + name search. */
 async function offBarcode(code){
   const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,brands,categories_tags,nutriments,serving_size,nutriscore_grade`);
@@ -2709,7 +2731,7 @@ function showEstimate(est){
   // reset the footer button (edit mode may have changed it)
   $('logFood').textContent='Log this meal'; $('logFood').onclick=commitLog;
   const conf={high:'High confidence',medium:'Medium confidence',low:'Low confidence — worth a sanity check'}[est.confidence]||'';
-  const srcLabel={photo:'From your photo',barcode:'From the product label',search:'Database or AI estimate',describe:'AI estimate'}[est.source]||'';
+  const srcLabel={photo:'From your photo',barcode:'From the product database',label:'From the nutrition label photo',search:'Database or AI estimate',describe:'AI estimate'}[est.source]||'';
   $('foodTitle').textContent=est.dish||'Your food';
   $('foodSub').textContent=conf||srcLabel;
   const itemsBlock = est.items&&est.items.length
@@ -2818,8 +2840,9 @@ function showEstimateEdit(){
       kcal:+$('adjKcal').value||0, protein_g:+$('adjP').value||0,
       carb_g:+$('adjC').value||0, fat_g:+$('adjF').value||0, fiber_g:+$('adjFb').value||0,
       sugar_g:(sgRaw!==''?+sgRaw:null),
-      thumb:e.thumb||null, source:e.source
+      thumb:e.thumb||null, source:e.source, _code:e._code
     };
+    if(e.source==='barcode' && e._code) cacheBarcode(e._code, _pendingEst);
     commitLog();
   };
   $('retryFood').style.display='none';
@@ -2849,6 +2872,24 @@ $('foodFile').onchange=async(ev)=>{
 };
 $('retryFood').onclick=()=>{ closeSheets(); setTimeout(()=>$('foodFile').click(),250); };
 $('closeFood').onclick=closeSheets;
+
+/* Photo of a nutrition facts panel — alternative to barcode scanning when a product
+   has no barcode match, or the barcode itself is damaged/unreadable. Feeds into the
+   same editable estimate flow so the name and numbers can be fixed before saving. */
+$('scanLabelPhoto').onclick=()=>{ stopScanner(); $('labelFile').click(); };
+$('labelFile').onchange=async(ev)=>{
+  const file=ev.target.files[0]; if(!file) return; ev.target.value='';
+  closeSheets();
+  const {b64,media,thumb}=await prepImage(file);
+  showEstimating('Reading the label…','Extracting calories and macros.');
+  try{
+    const r=await aiEstimateLabel(b64,media);
+    showEstimate({dish:r.dish||'Packaged product', kcal:r.kcal||0, protein_g:r.protein_g||0,
+      carb_g:r.carb_g||0, fat_g:r.fat_g||0, fiber_g:(r.fiber_g!=null?r.fiber_g:0),
+      sugar_g:(r.sugar_g!=null?r.sugar_g:null), basis:r.basis, confidence:r.confidence,
+      source:'label', thumb});
+  }catch(e){ estError('Couldn\'t read that label clearly — try a straight-on, well-lit shot of the nutrition facts panel, then use "✎ Adjust" to fix anything.'); }
+};
 
 /* SEARCH (Open Food Facts) */
 function openSearch(){
@@ -2905,10 +2946,34 @@ $('searchInput').addEventListener('keydown',e=>{ if(e.key==='Enter') runSearch()
 /* BARCODE scanner — uses ZXing (pure JS) instead of the native BarcodeDetector API,
    since Safari/WebKit (and therefore every browser on iOS/iPadOS) has never implemented
    BarcodeDetector. Without this, scanning silently failed and always fell back to manual entry. */
-let _scanReader=null;
+let _scanReader=null, _scanMode='lookup', _linkItem=null;
 async function openScanner(){
+  _scanMode='lookup'; _linkItem=null;
   $('scanSub').textContent='Point your camera at the product barcode.';
+  $('scanManual').textContent='Enter barcode number instead';
+  $('closeScan').textContent='Cancel';
   openSheet($('scanSheet'));
+  await startBarcodeReader(code=>{ stopScanner(); lookupBarcode(code); });
+}
+/* After logging a label-photo item with no barcode, offer to scan (or type) its barcode
+   so it lands in the exact same S.customBarcodes store that regular scans use. Fully
+   optional — skipping just leaves the item in Recents as before. */
+async function openBarcodeLinker(item){
+  _scanMode='link'; _linkItem=item;
+  $('scanSub').textContent=`Scan the barcode to link "${item.dish}" — future scans will show it instantly.`;
+  $('scanManual').textContent='Type the barcode number instead';
+  $('closeScan').textContent='Skip for now';
+  openSheet($('scanSheet'));
+  await startBarcodeReader(code=>{ stopScanner(); finishLink(code); });
+}
+function finishLink(code){
+  cacheBarcode(code,_linkItem);
+  closeSheets();
+  toast(`Linked — scanning this barcode now shows "${_linkItem.dish}"`);
+  _scanMode='lookup'; _linkItem=null;
+}
+/* Shared camera+decode loop. onCode(code) is called once per detected barcode. */
+async function startBarcodeReader(onCode){
   try{
     if(!window.ZXing) await waitForZXing(4000);
     if(!window.ZXing) throw new Error('scanner library failed to load');
@@ -2922,7 +2987,7 @@ async function openScanner(){
     _scanReader=codeReader;
     await codeReader.decodeFromConstraints(
       {video:{facingMode:'environment'}}, 'scanVideo',
-      (result,err)=>{ if(result){ const code=result.getText(); stopScanner(); lookupBarcode(code); } }
+      (result,err)=>{ if(result) onCode(result.getText()); }
     );
   }catch(e){
     $('scanSub').textContent='Camera unavailable — enter the number below.';
@@ -2942,21 +3007,72 @@ function stopScanner(){
 }
 async function lookupBarcode(code){
   closeSheets();
+  const cached=cachedBarcode(code);
+  if(cached){ showEstimate({...cached, source:'barcode', _code:code}); return; }
   showEstimating('Looking up…','Reading the product label.');
   try{
     const item=await offBarcode(code);
-    if(!item){ estError('That barcode isn\'t in the database yet. Try "Search a product" or "Describe it".'); return; }
+    if(!item){ showUnknownBarcode(code); return; }
     item._code=code;
+    cacheBarcode(code,item);
     showEstimate({...item,source:'barcode'});
   }catch(e){ estError('Couldn\'t reach the food database. Try again or use "Describe it".'); }
+}
+/* Product not found anywhere (OFF nor our own cache) — let the user enter it once.
+   It gets saved against this exact barcode, so every future scan of the same
+   product is instant, works offline, and never asks again. */
+function showUnknownBarcode(code){
+  _pendingEst={dish:'',kcal:0,protein_g:0,carb_g:0,fat_g:0,fiber_g:0,sugar_g:null,source:'barcode',_code:code};
+  $('foodTitle').textContent='New product';
+  $('foodSub').textContent="Not in the database yet — enter it once and it's remembered next scan.";
+  $('foodBody').innerHTML=`
+    <div class="adj-field"><label>Product name</label><input type="text" id="adjName" placeholder="e.g. Munchy's Lexus biscuits"></div>
+    <div class="adj-grid">
+      <div class="adj-field"><label>Calories</label><input type="number" inputmode="numeric" id="adjKcal" value="0"></div>
+      <div class="adj-field"><label>Protein (g)</label><input type="number" inputmode="numeric" id="adjP" value="0"></div>
+      <div class="adj-field"><label>Carbs (g)</label><input type="number" inputmode="numeric" id="adjC" value="0"></div>
+      <div class="adj-field"><label>Fat (g)</label><input type="number" inputmode="numeric" id="adjF" value="0"></div>
+      <div class="adj-field"><label>Fibre (g)</label><input type="number" inputmode="numeric" id="adjFb" value="0"></div>
+      <div class="adj-field"><label>Sugar (g)</label><input type="number" inputmode="numeric" id="adjSg" value="" placeholder="—"></div>
+    </div>
+    <p class="adj-hint">Use the numbers on the nutrition label for the serving you're having — this gets saved to this exact barcode.</p>`;
+  $('logFood').style.display='block'; $('retryFood').style.display='none'; $('foodActions').style.display='block';
+  $('logFood').textContent='Save & log';
+  $('logFood').onclick=()=>{
+    const sgRaw=$('adjSg').value;
+    const item={
+      dish:($('adjName').value||'Product').trim(),
+      kcal:+$('adjKcal').value||0, protein_g:+$('adjP').value||0,
+      carb_g:+$('adjC').value||0, fat_g:+$('adjF').value||0, fiber_g:+$('adjFb').value||0,
+      sugar_g:(sgRaw!==''?+sgRaw:null), source:'barcode'
+    };
+    cacheBarcode(code,item);
+    _pendingEst=item;
+    commitLog();
+  };
+  openSheet($('foodSheet'));
 }
 function scanManualPrompt(){
   const code=prompt('Enter the barcode number (the digits under the bars):');
   if(code && /^\d{6,14}$/.test(code.trim())) lookupBarcode(code.trim());
   else if(code!==null) toast('That doesn\'t look like a barcode');
 }
-$('scanManual').onclick=()=>{ stopScanner(); scanManualPrompt(); };
-$('closeScan').onclick=()=>{ stopScanner(); closeSheets(); };
+$('scanManual').onclick=()=>{
+  stopScanner();
+  if(_scanMode==='link'){
+    const code=prompt('Enter the barcode number (the digits under the bars):');
+    if(code && /^\d{6,14}$/.test(code.trim())) finishLink(code.trim());
+    else { if(code!==null) toast('That doesn\'t look like a barcode'); closeSheets(); _scanMode='lookup'; _linkItem=null; }
+  } else {
+    scanManualPrompt();
+  }
+};
+$('closeScan').onclick=()=>{
+  stopScanner();
+  if(_scanMode==='link') toast('Not linked — it\'s still saved in Recents');
+  _scanMode='lookup'; _linkItem=null;
+  closeSheets();
+};
 
 /* LOG (any source) */
 function commitLog(){
@@ -2967,7 +3083,13 @@ function commitLog(){
     sg:(e.sugar_g!=null?Math.round(e.sugar_g):null)};
   S.meals.push({t:Date.now(),...meal,thumb:e.thumb||null});
   rememberMeal(meal);   // save to recents for instant re-logging (no AI next time)
+  // label-photo items have no barcode yet — offer to link one so scanner + label-photo
+  // both write into the same place (S.customBarcodes) instead of two separate stores
+  const linkAfter = e.source==='label' && !e._code
+    ? {dish:meal.dish,kcal:meal.kcal,protein_g:meal.p,carb_g:meal.c,fat_g:meal.f,fiber_g:meal.fb,sugar_g:meal.sg}
+    : null;
   save(S); _pendingEst=null; closeSheets(); buildPlan(); toast('Logged · target updated');
+  if(linkAfter) setTimeout(()=>openBarcodeLinker(linkAfter), 450);
 }
 $('logFood').onclick=commitLog;
 /* recent meals: dedupe by name, keep most recent ~30, persisted */
