@@ -1914,12 +1914,11 @@ function searchLocalDB(term){
     return {f,score,hits,nameHits};
   })
   // A local hit must be a real match, not a coincidental fragment. Require either:
-  //   • the full phrase appears, OR
-  //   • a token matched the dish NAME (not just a generic category tag), OR
-  //   • the query is short (1–2 words) and any token hit — enough to be useful
-  // This lets specific dishes ("beef noodle brisket") with no true local entry fall through to AI
-  // instead of dumping every noodle dish that merely shares the word "noodle" in its tags.
-  .filter(x=> x.score>=10 || x.nameHits>0 || (tokens.length<=2 && x.hits>0))
+  //   • the full phrase appears (score>=10), OR
+  //   • ALL meaningful tokens match the dish NAME (not just tags)
+  // This prevents "chicken" alone from matching every chicken dish when user meant "spicy chicken mcdeluxe".
+  // Falls through to AI estimate if no strict match found.
+  .filter(x=> x.score>=10 || x.nameHits===tokens.length)
   .sort((a,b)=>b.score-a.score).slice(0,8);
   return scored.map(({f})=>({
     dish:f.dish, brand:'', basis:'per serving · local',
@@ -2937,22 +2936,30 @@ async function runSearch(){
   }catch(e){ res=[]; }
   // merge: local matches on top, then Open Food Facts
   res=[...local, ...res];
-  // Database empty or down → fall back to AI estimate (the OFF search endpoint is often unreliable)
+  // Database empty or down → offer AI estimate button (the OFF search endpoint is often unreliable)
   if(!res.length){
     if(aiReady()){
-      $('searchResults').innerHTML='<div class="spinner"></div><div class="smuted" style="margin-top:8px">Database had nothing — asking AI…</div>';
-      try{
-        const r=await aiEstimateText(term);
-        closeSheets();
-        showEstimate({dish:r.dish||term,kcal:r.kcal,protein_g:r.protein_g,carb_g:r.carb_g,fat_g:r.fat_g,fiber_g:r.fiber_g,
-          assumptions:r.assumptions,confidence:r.confidence,source:'search'});
-        return;
-      }catch(err){
-        $('searchResults').innerHTML=`<div class="smuted">Couldn't estimate "${term}". (${err.message||err}) Try adding more detail like size and sugar level.</div>`;
-        return;
-      }
+      $('searchResults').innerHTML=`<div style="text-align:center;padding:20px 16px">
+        <div class="smuted" style="margin-bottom:12px">No match in database.</div>
+        <button id="askAiBtn" style="padding:10px 16px;background:var(--goal);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer">Ask AI to estimate</button>
+      </div>`;
+      $('askAiBtn').onclick=async ()=>{
+        $('askAiBtn').textContent='Estimating…';
+        $('askAiBtn').disabled=true;
+        try{
+          const r=await aiEstimateText(term);
+          closeSheets();
+          showEstimate({dish:r.dish||term,kcal:r.kcal,protein_g:r.protein_g,carb_g:r.carb_g,fat_g:r.fat_g,fiber_g:r.fiber_g,
+            assumptions:r.assumptions,confidence:r.confidence,source:'search'});
+        }catch(err){
+          $('askAiBtn').textContent='Ask AI to estimate';
+          $('askAiBtn').disabled=false;
+          toast(`Couldn't estimate. (${err.message||err})`);
+        }
+      };
+      return;
     }
-    $('searchResults').innerHTML=`<div class="smuted">No match found. Add an AI key in settings (gear icon) so AI can estimate foods the database doesn't have.</div>`;
+    $('searchResults').innerHTML=`<div class="smuted">No match found. Add an AI key in settings (gear icon) to estimate foods the database doesn't have.</div>`;
     return;
   }
   $('searchResults').innerHTML=res.map((r,i)=>`
