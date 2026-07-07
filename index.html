@@ -351,23 +351,6 @@
   .rc-foods b{color:var(--ink);font-weight:600}
 
   /* AI coach — same card language as the recovery card: eyebrow header + roomy body */
-  /* ---- swipeable card stack (yesterday's food ⇄ today's coach) ---- */
-  .cardstack{position:relative;margin-bottom:14px}
-  .cardstack.gone{display:none}
-  .cardstack-viewport{position:relative;overflow:hidden;touch-action:pan-y}
-  .cardstack .stackcard{position:absolute;top:0;left:0;width:100%;margin:0!important;
-    will-change:transform,opacity;transition:transform .34s cubic-bezier(.22,.61,.36,1),opacity .34s ease;
-    box-sizing:border-box}
-  /* the active card also lives in normal flow via a measuring clone height (set by JS on the viewport) */
-  .cardstack .stackcard.front{z-index:2;transform:translateX(0);opacity:1;pointer-events:auto}
-  .cardstack .stackcard.back{z-index:1;transform:translateX(0) scale(.965);opacity:0;pointer-events:none}
-  .cardstack.solo .stackcard.front{position:relative}     /* only one card → normal flow, no absolute */
-  .cardstack .stackcard.swiping{transition:none}
-  .cardstack-dots{display:flex;justify-content:center;gap:7px;margin-top:9px}
-  .cardstack.solo .cardstack-dots{display:none}
-  .csd{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .25s,width .25s}
-  .csd.on{background:var(--goal);width:16px;border-radius:3px}
-
   .coach{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
     padding:15px 16px;margin-bottom:14px}
   .coach.dismissed{display:none!important}
@@ -682,12 +665,18 @@
     opacity:0;pointer-events:none;transition:.25s;z-index:40}
   .scrim.on{opacity:1;pointer-events:auto}
   .sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;
+    max-height:92dvh;display:flex;flex-direction:column;
     background:var(--panel);border-radius:22px 22px 0 0;border:1px solid var(--line);
     border-bottom:none;padding:20px 18px calc(env(safe-area-inset-bottom) + 22px);
     transform:translateY(110%);transition:.3s cubic-bezier(.4,0,.2,1);z-index:50;
-    overflow-x:hidden;overflow-wrap:break-word}
+    overflow-y:auto;overflow-x:hidden;overflow-wrap:break-word;-webkit-overflow-scrolling:touch}
   .sheet.on{transform:translateY(0)}
   .sheet input{max-width:100%}
+  /* food estimate: pin the title/subtitle, scroll only the body so the meal name is always visible */
+  #foodSheet{overflow:hidden}
+  #foodSheet #foodTitle,#foodSheet #foodSub{flex:0 0 auto}
+  #foodSheet #foodBody{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;min-height:0}
+  #foodSheet .food-actions,#foodSheet #closeFood{flex:0 0 auto}
   #searchResults{max-height:46vh;overflow-y:auto;overflow-x:hidden}
   .sheet h2{font-size:18px;margin-bottom:4px}
   .sheet p.s{font-size:13px;color:var(--ink-dim);margin-bottom:18px}
@@ -823,7 +812,6 @@
     font-size:13px;font-weight:700;padding:11px;border-radius:11px;cursor:pointer}
   .cal-add:active{border-color:var(--goal);color:var(--goal)}
 </style>
-<script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js" defer></script>
 </head>
 <body>
   <!-- ===== SPLASH ===== calorie-bank story: ring builds/spends, then resolves into the W logo -->
@@ -926,38 +914,28 @@
     <div class="rc-foods" id="recovFoods" style="display:none"></div>
   </div>
 
-  <div class="cardstack solo" id="cardStack">
-    <div class="cardstack-viewport" id="cardStackViewport">
-
-      <div class="grade stackcard" id="gradeCard" style="display:none">
-        <div class="grade-badge" id="gradeBadge">—</div>
-        <div class="grade-body">
-          <div class="grade-head">
-            <span class="grade-headtxt">Yesterday's food <span class="grade-ai">AI</span></span>
-          </div>
-          <div class="grade-txt" id="gradeTxt">—</div>
-        </div>
-        <button class="grade-dismiss" id="gradeDismiss" aria-label="Dismiss yesterday's food">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
-        </button>
+  <div class="grade" id="gradeCard" style="display:none">
+    <div class="grade-badge" id="gradeBadge">—</div>
+    <div class="grade-body">
+      <div class="grade-head">
+        <span class="grade-headtxt">Yesterday's food <span class="grade-ai">AI</span></span>
       </div>
-
-      <div class="coach stackcard front" id="coachCard">
-        <div class="coach-head">
-          <span class="coach-ai">AI</span>
-          <span class="coach-label">Today's coach</span>
-          <button class="coach-dismiss" id="coachDismiss" aria-label="Dismiss today's coach">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
-          </button>
-        </div>
-        <div class="coach-txt" id="coachTxt">Your daily coach appears here once Whoop's connected and you've logged a meal or weigh-in.</div>
-      </div>
-
+      <div class="grade-txt" id="gradeTxt">—</div>
     </div>
-    <div class="cardstack-dots" id="cardStackDots" aria-hidden="true">
-      <span class="csd" data-i="0"></span>
-      <span class="csd" data-i="1"></span>
+    <button class="grade-dismiss" id="gradeDismiss" aria-label="Dismiss yesterday's food">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
+    </button>
+  </div>
+
+  <div class="coach" id="coachCard">
+    <div class="coach-head">
+      <span class="coach-ai">AI</span>
+      <span class="coach-label">Today's coach</span>
+      <button class="coach-dismiss" id="coachDismiss" aria-label="Dismiss today's coach">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>
+      </button>
     </div>
+    <div class="coach-txt" id="coachTxt">Your daily coach appears here once Whoop's connected and you've logged a meal or weigh-in.</div>
   </div>
 
   <button class="homebank" id="homeBank" style="display:none">
@@ -1407,10 +1385,8 @@
     <h2>Scan barcode</h2>
     <p class="s" id="scanSub">Point your camera at the product barcode.</p>
     <div class="scanwrap"><video id="scanVideo" playsinline></video><div class="scanline"></div></div>
-    <button class="ghost" id="scanLabelPhoto" style="margin-top:14px">📷 Photo of nutrition label instead</button>
-    <button class="ghost" id="scanManual" style="margin-top:10px">Enter barcode number instead</button>
+    <button class="ghost" id="scanManual" style="margin-top:14px">Enter barcode number instead</button>
     <button class="ghost" id="closeScan" style="margin-top:10px">Cancel</button>
-    <input type="file" id="labelFile" accept="image/*" capture="environment" hidden>
   </div>
 
   <!-- AI settings sheet (Gemini only) -->
@@ -1502,7 +1478,7 @@ const KEY='leanday.v1';
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
 const save=s=>localStorage.setItem(KEY,JSON.stringify(s));
 let S=Object.assign({sex:'m',height:null,age:null,goal:null,months:null,deficit:500,
-  weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null,dayCompleted:{},customBarcodes:{}},load());
+  weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null,dayCompleted:{}},load());
 // migrate any old per-provider Gemini key to the single key
 if(!S.aiKey && S.aiKeys && S.aiKeys.gemini){ S.aiKey=S.aiKeys.gemini; delete S.aiKeys; save(S); }
 function curKey(){ return S.aiKey||''; }
@@ -1586,27 +1562,7 @@ async function aiEstimateMeal(base64,media){
   return parseJSON(txt);
 }
 
-/* Reads a nutrition facts panel photo (packaging) and pulls out the numbers directly,
-   instead of estimating a whole plate. Product name is a best guess if visible on the pack. */
-const LABEL_PROMPT=`You are reading a nutrition facts / nutrition information panel from a food package photo. Prefer the "Per Serving" column if the panel shows one; otherwise use "Per 100g" and say so in "basis". If any brand or product name is visible anywhere in the photo, include it in "dish" — otherwise leave "dish" as an empty string. Respond with ONLY valid JSON, no prose, no markdown:
-{"dish":"product name if visible, else empty string","basis":"e.g. per 30g serving / per 100g","kcal":0,"protein_g":0,"carb_g":0,"fat_g":0,"fiber_g":0,"sugar_g":0,"confidence":"high|medium|low"}`;
-async function aiEstimateLabel(base64,media){
-  const txt=await aiVision(base64,media,LABEL_PROMPT,600);
-  return parseJSON(txt);
-}
-
 /* ---------- non-photo food sources ---------- */
-/* Local barcode cache — a personal database that grows every time a scan succeeds
-   or a product is entered by hand. Open Food Facts has weak coverage of Malaysian
-   packaged goods, so this is what actually makes repeat scans fast and reliable. */
-function cachedBarcode(code){ return (S.customBarcodes && S.customBarcodes[code]) || null; }
-function cacheBarcode(code, item){
-  if(!S.customBarcodes) S.customBarcodes={};
-  S.customBarcodes[code]={dish:item.dish, brand:item.brand||'', basis:item.basis||'',
-    kcal:item.kcal, protein_g:item.protein_g, carb_g:item.carb_g, fat_g:item.fat_g,
-    fiber_g:item.fiber_g, sugar_g:item.sugar_g, savedAt:Date.now()};
-  save(S);
-}
 /* Open Food Facts: free, no key. Barcode lookup + name search. */
 async function offBarcode(code){
   const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,brands,categories_tags,nutriments,serving_size,nutriscore_grade`);
@@ -1793,102 +1749,6 @@ const MY_FOOD_DB=[
   {dish:'Limau ais (sweet)',kcal:90,protein_g:0,carb_g:23,fat_g:0,fiber_g:0,sugar_g:22,tags:'limau lime drink'},
   {dish:'100 Plus (can 325ml)',kcal:90,protein_g:0,carb_g:22,fat_g:0,fiber_g:0,sugar_g:22,tags:'100 plus isotonic'},
   {dish:'Kelapa / coconut water',kcal:60,protein_g:1,carb_g:14,fat_g:0,fiber_g:1,sugar_g:12,tags:'coconut kelapa'},
-  // — Rice & nasi (more) —
-  {dish:'Nasi lemak rendang ayam',kcal:750,protein_g:32,carb_g:65,fat_g:40,fiber_g:3,sugar_g:6,tags:'nasi lemak rendang chicken'},
-  {dish:'Nasi lemak sotong sambal',kcal:620,protein_g:18,carb_g:60,fat_g:30,fiber_g:3,sugar_g:5,tags:'nasi lemak sotong squid'},
-  {dish:'Nasi minyak',kcal:480,protein_g:10,carb_g:72,fat_g:16,fiber_g:2,sugar_g:4,tags:'nasi minyak ghee rice'},
-  {dish:'Nasi tomato',kcal:460,protein_g:9,carb_g:70,fat_g:14,fiber_g:2,sugar_g:5,tags:'nasi tomato rice'},
-  {dish:'Nasi ulam',kcal:380,protein_g:10,carb_g:50,fat_g:14,fiber_g:5,sugar_g:3,tags:'nasi ulam herb rice'},
-  {dish:'Economy rice (2 dishes + rice)',kcal:550,protein_g:20,carb_g:65,fat_g:20,fiber_g:4,sugar_g:5,tags:'economy rice campur mixed'},
-  {dish:'Nasi kerabu',kcal:480,protein_g:16,carb_g:62,fat_g:16,fiber_g:4,sugar_g:4,tags:'nasi kerabu blue rice'},
-  {dish:'Nasi paprik ayam',kcal:620,protein_g:28,carb_g:60,fat_g:28,fiber_g:3,sugar_g:6,tags:'nasi paprik chicken thai'},
-  {dish:'Bubur ayam (chicken porridge)',kcal:320,protein_g:16,carb_g:46,fat_g:8,fiber_g:1,sugar_g:2,tags:'bubur ayam porridge congee'},
-  {dish:'Bubur nasi (plain porridge)',kcal:150,protein_g:3,carb_g:32,fat_g:1,fiber_g:1,sugar_g:1,tags:'bubur porridge congee plain'},
-  {dish:'Claypot chicken rice',kcal:650,protein_g:28,carb_g:78,fat_g:22,fiber_g:3,sugar_g:5,tags:'claypot chicken rice'},
-  {dish:'Cantonese fried rice',kcal:600,protein_g:20,carb_g:74,fat_g:22,fiber_g:2,sugar_g:5,tags:'cantonese fried rice'},
-  {dish:'Char siu rice',kcal:620,protein_g:28,carb_g:72,fat_g:22,fiber_g:2,sugar_g:8,tags:'char siu roast pork rice'},
-  {dish:'Roast duck rice',kcal:680,protein_g:30,carb_g:68,fat_g:30,fiber_g:2,sugar_g:5,tags:'roast duck rice'},
-  // — Noodles (more) —
-  {dish:'Kuey teow soup (flat noodle)',kcal:380,protein_g:18,carb_g:56,fat_g:8,fiber_g:2,sugar_g:4,tags:'kuey teow soup noodle'},
-  {dish:'Curry mee',kcal:540,protein_g:18,carb_g:56,fat_g:26,fiber_g:3,sugar_g:6,tags:'curry mee noodle'},
-  {dish:'Yong tau foo (noodle, mixed)',kcal:350,protein_g:20,carb_g:40,fat_g:10,fiber_g:3,sugar_g:3,tags:'yong tau foo noodle soup'},
-  {dish:'Wantan mee w/ char siu (dry)',kcal:560,protein_g:26,carb_g:66,fat_g:18,fiber_g:3,sugar_g:7,tags:'wanton noodle char siu'},
-  {dish:'Loh mee',kcal:480,protein_g:18,carb_g:62,fat_g:16,fiber_g:3,sugar_g:6,tags:'loh mee noodle gravy'},
-  {dish:'Mee siam',kcal:420,protein_g:12,carb_g:62,fat_g:12,fiber_g:3,sugar_g:8,tags:'mee siam noodle'},
-  {dish:'Mee jawa',kcal:440,protein_g:14,carb_g:64,fat_g:13,fiber_g:3,sugar_g:7,tags:'mee jawa noodle'},
-  {dish:'Tom yam mee',kcal:460,protein_g:16,carb_g:58,fat_g:16,fiber_g:3,sugar_g:6,tags:'tom yam mee noodle spicy'},
-  {dish:'Kolo mee (Sarawak)',kcal:470,protein_g:20,carb_g:60,fat_g:14,fiber_g:2,sugar_g:4,tags:'kolo mee sarawak noodle'},
-  {dish:'Pad thai',kcal:550,protein_g:18,carb_g:68,fat_g:20,fiber_g:3,sugar_g:10,tags:'pad thai noodle'},
-  {dish:'Wonton soup (6 pcs)',kcal:220,protein_g:14,carb_g:22,fat_g:8,fiber_g:1,sugar_g:2,tags:'wonton soup dumpling'},
-  {dish:'Bak kut teh (w/ rice)',kcal:520,protein_g:26,carb_g:48,fat_g:24,fiber_g:2,sugar_g:3,tags:'bak kut teh pork rib soup'},
-  // — Breakfast, bread (more) —
-  {dish:'Roti bom',kcal:460,protein_g:8,carb_g:55,fat_g:22,fiber_g:2,sugar_g:18,tags:'roti bom condensed milk'},
-  {dish:'Roti pisang',kcal:380,protein_g:7,carb_g:50,fat_g:16,fiber_g:2,sugar_g:14,tags:'roti pisang banana'},
-  {dish:'Murtabak ayam (1 slice)',kcal:420,protein_g:18,carb_g:40,fat_g:20,fiber_g:2,sugar_g:4,tags:'murtabak chicken'},
-  {dish:'Chee cheong fun (w/ sauce)',kcal:300,protein_g:6,carb_g:56,fat_g:5,fiber_g:2,sugar_g:10,tags:'chee cheong fun rice roll'},
-  {dish:'Roti john',kcal:480,protein_g:20,carb_g:46,fat_g:24,fiber_g:2,sugar_g:5,tags:'roti john egg sandwich'},
-  {dish:'Vadai (2 pcs)',kcal:220,protein_g:8,carb_g:26,fat_g:10,fiber_g:3,sugar_g:2,tags:'vadai lentil fritter'},
-  {dish:'Chapati (1 pc)',kcal:150,protein_g:4,carb_g:24,fat_g:4,fiber_g:2,sugar_g:1,tags:'chapati indian bread'},
-  // — Sides, snacks, kuih (more) —
-  {dish:'Otak-otak (1 pc)',kcal:90,protein_g:6,carb_g:4,fat_g:6,fiber_g:0,sugar_g:1,tags:'otak otak fish cake'},
-  {dish:'Keropok lekor (2 pcs)',kcal:150,protein_g:5,carb_g:18,fat_g:7,fiber_g:1,sugar_g:1,tags:'keropok lekor fish cracker'},
-  {dish:'Ikan bakar (grilled fish)',kcal:280,protein_g:32,carb_g:2,fat_g:16,fiber_g:0,sugar_g:0,tags:'ikan bakar grilled fish'},
-  {dish:'Rendang daging (1 serving)',kcal:420,protein_g:28,carb_g:8,fat_g:30,fiber_g:1,sugar_g:3,tags:'rendang beef daging'},
-  {dish:'Ayam masak merah (1 serving)',kcal:320,protein_g:26,carb_g:10,fat_g:20,fiber_g:1,sugar_g:5,tags:'ayam masak merah chicken'},
-  {dish:'Sambal udang (1 serving)',kcal:260,protein_g:20,carb_g:8,fat_g:16,fiber_g:1,sugar_g:4,tags:'sambal udang prawn'},
-  {dish:'Kuih lapis (1 pc)',kcal:160,protein_g:2,carb_g:30,fat_g:4,fiber_g:0,sugar_g:18,tags:'kuih lapis layer cake'},
-  {dish:'Onde-onde (3 pcs)',kcal:180,protein_g:2,carb_g:34,fat_g:4,fiber_g:1,sugar_g:16,tags:'onde onde kuih'},
-  {dish:'Kuih seri muka (1 pc)',kcal:190,protein_g:3,carb_g:28,fat_g:8,fiber_g:1,sugar_g:14,tags:'seri muka kuih'},
-  {dish:'Tauhu bakar (1 serving)',kcal:200,protein_g:12,carb_g:14,fat_g:10,fiber_g:2,sugar_g:6,tags:'tauhu bakar tofu'},
-  {dish:'Tauhu goreng',kcal:220,protein_g:10,carb_g:16,fat_g:14,fiber_g:2,sugar_g:4,tags:'tauhu goreng fried tofu'},
-  {dish:'Fish ball (5 pcs)',kcal:120,protein_g:10,carb_g:8,fat_g:5,fiber_g:0,sugar_g:1,tags:'fish ball bebola ikan'},
-  {dish:'Dim sum siew mai (3 pcs)',kcal:180,protein_g:10,carb_g:14,fat_g:9,fiber_g:1,sugar_g:1,tags:'siew mai dim sum'},
-  {dish:'Dim sum har gow (3 pcs)',kcal:150,protein_g:8,carb_g:16,fat_g:5,fiber_g:1,sugar_g:1,tags:'har gow dim sum prawn'},
-  // — Indian / mamak (more) —
-  {dish:'Briyani kambing',kcal:780,protein_g:32,carb_g:82,fat_g:36,fiber_g:4,sugar_g:6,tags:'briyani mutton kambing rice'},
-  {dish:'Tandoori chicken (1 pc)',kcal:260,protein_g:32,carb_g:4,fat_g:12,fiber_g:0,sugar_g:2,tags:'tandoori chicken'},
-  {dish:'Naan (plain)',kcal:260,protein_g:8,carb_g:48,fat_g:5,fiber_g:2,sugar_g:3,tags:'naan indian bread'},
-  {dish:'Cheese naan',kcal:340,protein_g:11,carb_g:48,fat_g:12,fiber_g:2,sugar_g:4,tags:'cheese naan bread'},
-  {dish:'Fish head curry (w/ rice)',kcal:620,protein_g:34,carb_g:60,fat_g:26,fiber_g:3,sugar_g:5,tags:'fish head curry'},
-  {dish:'Chicken 65',kcal:320,protein_g:26,carb_g:14,fat_g:18,fiber_g:1,sugar_g:3,tags:'chicken 65 fried'},
-  {dish:'Dhal curry (side)',kcal:140,protein_g:7,carb_g:18,fat_g:4,fiber_g:5,sugar_g:2,tags:'dhal curry lentil'},
-  {dish:'Papadum (2 pcs)',kcal:70,protein_g:2,carb_g:10,fat_g:2,fiber_g:1,sugar_g:0,tags:'papadum papad cracker'},
-  {dish:'Rojak mamak',kcal:300,protein_g:6,carb_g:48,fat_g:10,fiber_g:4,sugar_g:20,tags:'rojak mamak fruit'},
-  // — Fast food —
-  {dish:'McChicken burger',kcal:400,protein_g:16,carb_g:38,fat_g:20,fiber_g:2,sugar_g:5,tags:'mcchicken mcdonalds burger'},
-  {dish:'Fried chicken (KFC-style, 1 pc)',kcal:320,protein_g:22,carb_g:10,fat_g:20,fiber_g:0,sugar_g:0,tags:'kfc fried chicken'},
-  {dish:'Pizza slice (regular)',kcal:260,protein_g:11,carb_g:28,fat_g:11,fiber_g:2,sugar_g:3,tags:'pizza slice'},
-  {dish:'Beef burger (plain)',kcal:350,protein_g:18,carb_g:34,fat_g:16,fiber_g:2,sugar_g:6,tags:'burger beef'},
-  {dish:'Sub sandwich 6-inch (chicken)',kcal:350,protein_g:24,carb_g:46,fat_g:8,fiber_g:4,sugar_g:6,tags:'subway sandwich sub'},
-  {dish:'French fries (regular)',kcal:340,protein_g:4,carb_g:44,fat_g:16,fiber_g:4,sugar_g:0,tags:'french fries chips'},
-  // — Fruits —
-  {dish:'Banana (1 medium)',kcal:105,protein_g:1,carb_g:27,fat_g:0,fiber_g:3,sugar_g:14,tags:'banana pisang fruit'},
-  {dish:'Apple (1 medium)',kcal:95,protein_g:0,carb_g:25,fat_g:0,fiber_g:4,sugar_g:19,tags:'apple epal fruit'},
-  {dish:'Papaya (1 cup)',kcal:62,protein_g:1,carb_g:16,fat_g:0,fiber_g:3,sugar_g:11,tags:'papaya betik fruit'},
-  {dish:'Watermelon (1 cup)',kcal:46,protein_g:1,carb_g:12,fat_g:0,fiber_g:1,sugar_g:10,tags:'watermelon tembikai fruit'},
-  {dish:'Rambutan (5 pcs)',kcal:70,protein_g:1,carb_g:17,fat_g:0,fiber_g:1,sugar_g:13,tags:'rambutan fruit'},
-  {dish:'Mangosteen (5 pcs)',kcal:140,protein_g:1,carb_g:35,fat_g:1,fiber_g:4,sugar_g:28,tags:'mangosteen manggis fruit'},
-  {dish:'Durian (100g)',kcal:147,protein_g:2,carb_g:27,fat_g:5,fiber_g:3,sugar_g:21,tags:'durian fruit'},
-  // — Healthy / gym options —
-  {dish:'Grilled chicken breast (150g)',kcal:250,protein_g:46,carb_g:0,fat_g:6,fiber_g:0,sugar_g:0,tags:'grilled chicken breast lean'},
-  {dish:'Steamed fish (1 serving)',kcal:200,protein_g:32,carb_g:2,fat_g:7,fiber_g:0,sugar_g:0,tags:'steamed fish healthy'},
-  {dish:'Brown rice (1 cup)',kcal:215,protein_g:5,carb_g:45,fat_g:2,fiber_g:3,sugar_g:0,tags:'brown rice healthy'},
-  {dish:'Oatmeal (1 bowl, plain)',kcal:150,protein_g:5,carb_g:27,fat_g:3,fiber_g:4,sugar_g:1,tags:'oatmeal oats breakfast'},
-  {dish:'Greek yogurt (1 cup, plain)',kcal:130,protein_g:20,carb_g:9,fat_g:0,fiber_g:0,sugar_g:9,tags:'greek yogurt healthy'},
-  {dish:'Boiled eggs (2, whole)',kcal:156,protein_g:12,carb_g:1,fat_g:11,fiber_g:0,sugar_g:0,tags:'boiled egg telur'},
-  {dish:'Egg white (3)',kcal:51,protein_g:11,carb_g:0,fat_g:0,fiber_g:0,sugar_g:0,tags:'egg white protein'},
-  {dish:'Protein shake (1 scoop, water)',kcal:120,protein_g:24,carb_g:3,fat_g:1,fiber_g:0,sugar_g:1,tags:'protein shake whey supplement'},
-  {dish:'Grilled chicken salad (no dressing)',kcal:280,protein_g:30,carb_g:14,fat_g:10,fiber_g:5,sugar_g:4,tags:'salad chicken healthy'},
-  {dish:'Tuna sandwich (wholemeal)',kcal:320,protein_g:22,carb_g:34,fat_g:10,fiber_g:4,sugar_g:4,tags:'tuna sandwich wholemeal'},
-  // — Drinks (more) —
-  {dish:'Iced lemon tea',kcal:110,protein_g:0,carb_g:28,fat_g:0,fiber_g:0,sugar_g:26,tags:'lemon tea iced drink'},
-  {dish:'Barley drink (iced, sweet)',kcal:140,protein_g:1,carb_g:34,fat_g:0,fiber_g:1,sugar_g:28,tags:'barley drink sweet'},
-  {dish:'Sugarcane juice',kcal:180,protein_g:0,carb_g:46,fat_g:0,fiber_g:0,sugar_g:44,tags:'sugarcane juice tebu'},
-  {dish:'Soya bean milk (sweet)',kcal:130,protein_g:6,carb_g:20,fat_g:3,fiber_g:1,sugar_g:18,tags:'soya bean milk susu kacang'},
-  {dish:'Fresh orange juice',kcal:110,protein_g:1,carb_g:26,fat_g:0,fiber_g:1,sugar_g:22,tags:'orange juice fresh'},
-  {dish:'Watermelon juice',kcal:90,protein_g:1,carb_g:22,fat_g:0,fiber_g:1,sugar_g:18,tags:'watermelon juice tembikai'},
-  {dish:'Kopi C',kcal:130,protein_g:2,carb_g:20,fat_g:5,fiber_g:0,sugar_g:18,tags:'kopi c coffee evaporated milk'},
-  {dish:'Cham (coffee + tea)',kcal:150,protein_g:3,carb_g:24,fat_g:5,fiber_g:0,sugar_g:20,tags:'cham coffee tea mix'},
 ];
 /* search the local DB by name/tags; returns result objects matching offToItem shape */
 /* Words too generic to signal a real match on their own. */
@@ -1914,11 +1774,12 @@ function searchLocalDB(term){
     return {f,score,hits,nameHits};
   })
   // A local hit must be a real match, not a coincidental fragment. Require either:
-  //   • the full phrase appears (score>=10), OR
-  //   • ALL meaningful tokens match the dish NAME (not just tags)
-  // This prevents "chicken" alone from matching every chicken dish when user meant "spicy chicken mcdeluxe".
-  // Falls through to AI estimate if no strict match found.
-  .filter(x=> x.score>=10 || x.nameHits===tokens.length)
+  //   • the full phrase appears, OR
+  //   • a token matched the dish NAME (not just a generic category tag), OR
+  //   • the query is short (1–2 words) and any token hit — enough to be useful
+  // This lets specific dishes ("beef noodle brisket") with no true local entry fall through to AI
+  // instead of dumping every noodle dish that merely shares the word "noodle" in its tags.
+  .filter(x=> x.score>=10 || x.nameHits>0 || (tokens.length<=2 && x.hits>0))
   .sort((a,b)=>b.score-a.score).slice(0,8);
   return scored.map(({f})=>({
     dish:f.dish, brand:'', basis:'per serving · local',
@@ -2013,13 +1874,40 @@ function setupDone(){ return !!(S.height && curWeight()); }
 function renderTodayState(){ /* no-op kept for callers; splash handles first-run gating */ }
 
 /* ---------- targets ---------- */
-async function buildPlan(){
+// last-known physiology, so the UI can paint instantly without awaiting the network
+let _physCache={recovery:null,burnKcal:null,strainKJ:null};
+
+// Synchronous: paints the whole UI from current state + last-known phys. Never awaits.
+function buildPlan(){
   const w=curWeight();
   renderTodayState();
   if(!S.height||!w){ return; }   // no setup yet — welcome card is showing, don't force the sheet
-  let phys={recovery:null,burnKcal:null,strainKJ:null};
-  if(Whoop.connected()){ phys=await Whoop.fetchToday(); }
+  const phys = Whoop.connected() ? _physCache : {recovery:null,burnKcal:null,strainKJ:null};
+  computeAndRender(phys);
+  // kick a background phys refresh; only re-renders if the numbers actually changed
+  if(Whoop.connected()) refreshPhys();
+}
 
+// Pulls fresh Whoop data off the critical path; re-renders only on change.
+let _physInFlight=false;
+async function refreshPhys(){
+  if(_physInFlight) return;
+  _physInFlight=true;
+  try{
+    const fresh=await Whoop.fetchToday();
+    _physInFlight=false;
+    const changed = !_physCache
+      || fresh.burnKcal!==_physCache.burnKcal
+      || fresh.strainKJ!==_physCache.strainKJ
+      || fresh.recovery!==_physCache.recovery;
+    _physCache=fresh;
+    if(changed && S.height && curWeight()){ computeAndRender(fresh); }
+  }catch(e){ _physInFlight=false; }
+}
+
+// The former body of buildPlan — pure compute + render for a given phys object.
+function computeAndRender(phys){
+  const w=curWeight();
   // WATER: 33 ml/kg base, + a bit on higher-burn days (more sweat loss)
   const strainFactor = phys.strainKJ? Math.min(1,(phys.strainKJ-6000)/6000) : 0.3;
   const water=(w*0.033 + Math.max(0,strainFactor)*0.7);
@@ -2757,7 +2645,7 @@ function showEstimate(est){
   // reset the footer button (edit mode may have changed it)
   $('logFood').textContent='Log this meal'; $('logFood').onclick=commitLog;
   const conf={high:'High confidence',medium:'Medium confidence',low:'Low confidence — worth a sanity check'}[est.confidence]||'';
-  const srcLabel={photo:'From your photo',barcode:'From the product database',label:'From the nutrition label photo',search:'Database or AI estimate',describe:'AI estimate'}[est.source]||'';
+  const srcLabel={photo:'From your photo',barcode:'From the product label',search:'Database or AI estimate',describe:'AI estimate'}[est.source]||'';
   $('foodTitle').textContent=est.dish||'Your food';
   $('foodSub').textContent=conf||srcLabel;
   const itemsBlock = est.items&&est.items.length
@@ -2866,9 +2754,8 @@ function showEstimateEdit(){
       kcal:+$('adjKcal').value||0, protein_g:+$('adjP').value||0,
       carb_g:+$('adjC').value||0, fat_g:+$('adjF').value||0, fiber_g:+$('adjFb').value||0,
       sugar_g:(sgRaw!==''?+sgRaw:null),
-      thumb:e.thumb||null, source:e.source, _code:e._code
+      thumb:e.thumb||null, source:e.source
     };
-    if(e.source==='barcode' && e._code) cacheBarcode(e._code, _pendingEst);
     commitLog();
   };
   $('retryFood').style.display='none';
@@ -2899,24 +2786,6 @@ $('foodFile').onchange=async(ev)=>{
 $('retryFood').onclick=()=>{ closeSheets(); setTimeout(()=>$('foodFile').click(),250); };
 $('closeFood').onclick=closeSheets;
 
-/* Photo of a nutrition facts panel — alternative to barcode scanning when a product
-   has no barcode match, or the barcode itself is damaged/unreadable. Feeds into the
-   same editable estimate flow so the name and numbers can be fixed before saving. */
-$('scanLabelPhoto').onclick=()=>{ stopScanner(); $('labelFile').click(); };
-$('labelFile').onchange=async(ev)=>{
-  const file=ev.target.files[0]; if(!file) return; ev.target.value='';
-  closeSheets();
-  const {b64,media,thumb}=await prepImage(file);
-  showEstimating('Reading the label…','Extracting calories and macros.');
-  try{
-    const r=await aiEstimateLabel(b64,media);
-    showEstimate({dish:r.dish||'Packaged product', kcal:r.kcal||0, protein_g:r.protein_g||0,
-      carb_g:r.carb_g||0, fat_g:r.fat_g||0, fiber_g:(r.fiber_g!=null?r.fiber_g:0),
-      sugar_g:(r.sugar_g!=null?r.sugar_g:null), basis:r.basis, confidence:r.confidence,
-      source:'label', thumb});
-  }catch(e){ estError('Couldn\'t read that label clearly — try a straight-on, well-lit shot of the nutrition facts panel, then use "✎ Adjust" to fix anything.'); }
-};
-
 /* SEARCH (Open Food Facts) */
 function openSearch(){
   $('searchInput').value=''; $('searchResults').innerHTML='';
@@ -2936,30 +2805,22 @@ async function runSearch(){
   }catch(e){ res=[]; }
   // merge: local matches on top, then Open Food Facts
   res=[...local, ...res];
-  // Database empty or down → offer AI estimate button (the OFF search endpoint is often unreliable)
+  // Database empty or down → fall back to AI estimate (the OFF search endpoint is often unreliable)
   if(!res.length){
     if(aiReady()){
-      $('searchResults').innerHTML=`<div style="text-align:center;padding:20px 16px">
-        <div class="smuted" style="margin-bottom:12px">No match in database.</div>
-        <button id="askAiBtn" style="padding:10px 16px;background:var(--goal);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer">Ask AI to estimate</button>
-      </div>`;
-      $('askAiBtn').onclick=async ()=>{
-        $('askAiBtn').textContent='Estimating…';
-        $('askAiBtn').disabled=true;
-        try{
-          const r=await aiEstimateText(term);
-          closeSheets();
-          showEstimate({dish:r.dish||term,kcal:r.kcal,protein_g:r.protein_g,carb_g:r.carb_g,fat_g:r.fat_g,fiber_g:r.fiber_g,
-            assumptions:r.assumptions,confidence:r.confidence,source:'search'});
-        }catch(err){
-          $('askAiBtn').textContent='Ask AI to estimate';
-          $('askAiBtn').disabled=false;
-          toast(`Couldn't estimate. (${err.message||err})`);
-        }
-      };
-      return;
+      $('searchResults').innerHTML='<div class="spinner"></div><div class="smuted" style="margin-top:8px">Database had nothing — asking AI…</div>';
+      try{
+        const r=await aiEstimateText(term);
+        closeSheets();
+        showEstimate({dish:r.dish||term,kcal:r.kcal,protein_g:r.protein_g,carb_g:r.carb_g,fat_g:r.fat_g,fiber_g:r.fiber_g,
+          assumptions:r.assumptions,confidence:r.confidence,source:'search'});
+        return;
+      }catch(err){
+        $('searchResults').innerHTML=`<div class="smuted">Couldn't estimate "${term}". (${err.message||err}) Try adding more detail like size and sugar level.</div>`;
+        return;
+      }
     }
-    $('searchResults').innerHTML=`<div class="smuted">No match found. Add an AI key in settings (gear icon) to estimate foods the database doesn't have.</div>`;
+    $('searchResults').innerHTML=`<div class="smuted">No match found. Add an AI key in settings (gear icon) so AI can estimate foods the database doesn't have.</div>`;
     return;
   }
   $('searchResults').innerHTML=res.map((r,i)=>`
@@ -2977,136 +2838,47 @@ let _searchRes=[];
 $('searchGo').onclick=runSearch;
 $('searchInput').addEventListener('keydown',e=>{ if(e.key==='Enter') runSearch(); });
 
-/* BARCODE scanner — uses ZXing (pure JS) instead of the native BarcodeDetector API,
-   since Safari/WebKit (and therefore every browser on iOS/iPadOS) has never implemented
-   BarcodeDetector. Without this, scanning silently failed and always fell back to manual entry. */
-let _scanReader=null, _scanMode='lookup', _linkItem=null;
+/* BARCODE scanner */
+let _scanStream=null,_scanLoop=null;
 async function openScanner(){
-  _scanMode='lookup'; _linkItem=null;
   $('scanSub').textContent='Point your camera at the product barcode.';
-  $('scanManual').textContent='Enter barcode number instead';
-  $('closeScan').textContent='Cancel';
   openSheet($('scanSheet'));
-  await startBarcodeReader(code=>{ stopScanner(); lookupBarcode(code); });
-}
-/* After logging a label-photo item with no barcode, offer to scan (or type) its barcode
-   so it lands in the exact same S.customBarcodes store that regular scans use. Fully
-   optional — skipping just leaves the item in Recents as before. */
-async function openBarcodeLinker(item){
-  _scanMode='link'; _linkItem=item;
-  $('scanSub').textContent=`Scan the barcode to link "${item.dish}" — future scans will show it instantly.`;
-  $('scanManual').textContent='Type the barcode number instead';
-  $('closeScan').textContent='Skip for now';
-  openSheet($('scanSheet'));
-  await startBarcodeReader(code=>{ stopScanner(); finishLink(code); });
-}
-function finishLink(code){
-  cacheBarcode(code,_linkItem);
-  closeSheets();
-  toast(`Linked — scanning this barcode now shows "${_linkItem.dish}"`);
-  _scanMode='lookup'; _linkItem=null;
-}
-/* Shared camera+decode loop. onCode(code) is called once per detected barcode. */
-async function startBarcodeReader(onCode){
-  try{
-    if(!window.ZXing) await waitForZXing(4000);
-    if(!window.ZXing) throw new Error('scanner library failed to load');
-    const hints=new Map();
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[
-      ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
-      ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E,
-      ZXing.BarcodeFormat.CODE_128
-    ]);
-    const codeReader=new ZXing.BrowserMultiFormatReader(hints);
-    _scanReader=codeReader;
-    await codeReader.decodeFromConstraints(
-      {video:{facingMode:'environment'}}, 'scanVideo',
-      (result,err)=>{ if(result) onCode(result.getText()); }
-    );
-  }catch(e){
-    $('scanSub').textContent='Camera unavailable — enter the number below.';
+  if(!('BarcodeDetector' in window)){
+    $('scanSub').textContent='Your browser can\'t scan here — enter the number below.';
+    return scanManualPrompt(true);
   }
-}
-function waitForZXing(timeoutMs){
-  return new Promise(resolve=>{
-    const start=Date.now();
-    (function poll(){
-      if(window.ZXing || Date.now()-start>timeoutMs) return resolve();
-      setTimeout(poll,100);
-    })();
-  });
+  try{
+    _scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const v=$('scanVideo'); v.srcObject=_scanStream; await v.play();
+    const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128']});
+    _scanLoop=setInterval(async()=>{
+      try{ const codes=await det.detect(v);
+        if(codes.length){ const code=codes[0].rawValue; stopScanner(); lookupBarcode(code); }
+      }catch(_){}
+    },600);
+  }catch(e){ $('scanSub').textContent='Camera unavailable — enter the number below.'; }
 }
 function stopScanner(){
-  if(_scanReader){ try{ _scanReader.reset(); }catch(e){} _scanReader=null; }
+  if(_scanLoop){clearInterval(_scanLoop);_scanLoop=null;}
+  if(_scanStream){_scanStream.getTracks().forEach(t=>t.stop());_scanStream=null;}
 }
 async function lookupBarcode(code){
   closeSheets();
-  const cached=cachedBarcode(code);
-  if(cached){ showEstimate({...cached, source:'barcode', _code:code}); return; }
   showEstimating('Looking up…','Reading the product label.');
   try{
     const item=await offBarcode(code);
-    if(!item){ showUnknownBarcode(code); return; }
+    if(!item){ estError('That barcode isn\'t in the database yet. Try "Search a product" or "Describe it".'); return; }
     item._code=code;
-    cacheBarcode(code,item);
     showEstimate({...item,source:'barcode'});
   }catch(e){ estError('Couldn\'t reach the food database. Try again or use "Describe it".'); }
-}
-/* Product not found anywhere (OFF nor our own cache) — let the user enter it once.
-   It gets saved against this exact barcode, so every future scan of the same
-   product is instant, works offline, and never asks again. */
-function showUnknownBarcode(code){
-  _pendingEst={dish:'',kcal:0,protein_g:0,carb_g:0,fat_g:0,fiber_g:0,sugar_g:null,source:'barcode',_code:code};
-  $('foodTitle').textContent='New product';
-  $('foodSub').textContent="Not in the database yet — enter it once and it's remembered next scan.";
-  $('foodBody').innerHTML=`
-    <div class="adj-field"><label>Product name</label><input type="text" id="adjName" placeholder="e.g. Munchy's Lexus biscuits"></div>
-    <div class="adj-grid">
-      <div class="adj-field"><label>Calories</label><input type="number" inputmode="numeric" id="adjKcal" value="0"></div>
-      <div class="adj-field"><label>Protein (g)</label><input type="number" inputmode="numeric" id="adjP" value="0"></div>
-      <div class="adj-field"><label>Carbs (g)</label><input type="number" inputmode="numeric" id="adjC" value="0"></div>
-      <div class="adj-field"><label>Fat (g)</label><input type="number" inputmode="numeric" id="adjF" value="0"></div>
-      <div class="adj-field"><label>Fibre (g)</label><input type="number" inputmode="numeric" id="adjFb" value="0"></div>
-      <div class="adj-field"><label>Sugar (g)</label><input type="number" inputmode="numeric" id="adjSg" value="" placeholder="—"></div>
-    </div>
-    <p class="adj-hint">Use the numbers on the nutrition label for the serving you're having — this gets saved to this exact barcode.</p>`;
-  $('logFood').style.display='block'; $('retryFood').style.display='none'; $('foodActions').style.display='block';
-  $('logFood').textContent='Save & log';
-  $('logFood').onclick=()=>{
-    const sgRaw=$('adjSg').value;
-    const item={
-      dish:($('adjName').value||'Product').trim(),
-      kcal:+$('adjKcal').value||0, protein_g:+$('adjP').value||0,
-      carb_g:+$('adjC').value||0, fat_g:+$('adjF').value||0, fiber_g:+$('adjFb').value||0,
-      sugar_g:(sgRaw!==''?+sgRaw:null), source:'barcode'
-    };
-    cacheBarcode(code,item);
-    _pendingEst=item;
-    commitLog();
-  };
-  openSheet($('foodSheet'));
 }
 function scanManualPrompt(){
   const code=prompt('Enter the barcode number (the digits under the bars):');
   if(code && /^\d{6,14}$/.test(code.trim())) lookupBarcode(code.trim());
   else if(code!==null) toast('That doesn\'t look like a barcode');
 }
-$('scanManual').onclick=()=>{
-  stopScanner();
-  if(_scanMode==='link'){
-    const code=prompt('Enter the barcode number (the digits under the bars):');
-    if(code && /^\d{6,14}$/.test(code.trim())) finishLink(code.trim());
-    else { if(code!==null) toast('That doesn\'t look like a barcode'); closeSheets(); _scanMode='lookup'; _linkItem=null; }
-  } else {
-    scanManualPrompt();
-  }
-};
-$('closeScan').onclick=()=>{
-  stopScanner();
-  if(_scanMode==='link') toast('Not linked — it\'s still saved in Recents');
-  _scanMode='lookup'; _linkItem=null;
-  closeSheets();
-};
+$('scanManual').onclick=()=>{ stopScanner(); scanManualPrompt(); };
+$('closeScan').onclick=()=>{ stopScanner(); closeSheets(); };
 
 /* LOG (any source) */
 function commitLog(){
@@ -3117,13 +2889,7 @@ function commitLog(){
     sg:(e.sugar_g!=null?Math.round(e.sugar_g):null)};
   S.meals.push({t:Date.now(),...meal,thumb:e.thumb||null});
   rememberMeal(meal);   // save to recents for instant re-logging (no AI next time)
-  // label-photo items have no barcode yet — offer to link one so scanner + label-photo
-  // both write into the same place (S.customBarcodes) instead of two separate stores
-  const linkAfter = e.source==='label' && !e._code
-    ? {dish:meal.dish,kcal:meal.kcal,protein_g:meal.p,carb_g:meal.c,fat_g:meal.f,fiber_g:meal.fb,sugar_g:meal.sg}
-    : null;
   save(S); _pendingEst=null; closeSheets(); buildPlan(); toast('Logged · target updated');
-  if(linkAfter) setTimeout(()=>openBarcodeLinker(linkAfter), 450);
 }
 $('logFood').onclick=commitLog;
 /* recent meals: dedupe by name, keep most recent ~30, persisted */
@@ -3164,9 +2930,6 @@ function prepImage(file){
 /* ---------- AI coach ---------- */
 let _coachKey=null;
 async function refreshCoach(plan){
-  try{ return await _refreshCoach(plan); } finally{ try{ CardStack.sync(); }catch(e){} }
-}
-async function _refreshCoach(plan){
   const card=$('coachCard'), txt=$('coachTxt');
   // dismissed for today — keep it hidden until the day rolls over
   if(coachDismissed()){ card.classList.add('dismissed'); return; }
@@ -3221,120 +2984,17 @@ function _today(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+
 function loadCoachCache(){ try{ const c=JSON.parse(localStorage.getItem('whoopdiet.coachCache')||'{}'); return c.day===_today()?c:{}; }catch(e){ return {}; } }
 function saveCoachCache(c){ try{ c.day=_today(); localStorage.setItem('whoopdiet.coachCache', JSON.stringify(c)); }catch(e){} }
 
-/* Dismissal state — resets each day so tomorrow's cards come back on their own. */
+/* Coach dismissal — resets each day so tomorrow's coach comes back on its own. */
 function coachDismissed(){ try{ return localStorage.getItem('whoopdiet.coachDismiss')===_today(); }catch(e){ return false; } }
 function setCoachDismissed(on){ try{ if(on) localStorage.setItem('whoopdiet.coachDismiss',_today()); else localStorage.removeItem('whoopdiet.coachDismiss'); }catch(e){} }
+(function(){ const b=$('coachDismiss'); if(b) b.onclick=(e)=>{ e.stopPropagation();
+  setCoachDismissed(true); const c=$('coachCard'); if(c) c.classList.add('dismissed'); }; })();
+
+/* Grade dismissal — resets each day so tomorrow's "yesterday's food" comes back on its own. */
 function gradeDismissed(){ try{ return localStorage.getItem('whoopdiet.gradeDismiss')===_today(); }catch(e){ return false; } }
 function setGradeDismissed(on){ try{ if(on) localStorage.setItem('whoopdiet.gradeDismiss',_today()); else localStorage.removeItem('whoopdiet.gradeDismiss'); }catch(e){} }
-
-/* ---------- card stack: Yesterday's Food (front) ⇄ Today's Coach, swipeable ---------- */
-const CardStack=(function(){
-  const wrap=$('cardStack'), vp=$('cardStackViewport'), dots=$('cardStackDots');
-  const grade=$('gradeCard'), coach=$('coachCard');
-  // order[0] is the front card; grade leads by design
-  let order=[grade,coach];
-  let front=0;                 // index into `order` currently shown
-  let dragging=false, x0=0, y0=0, dx=0, locked=null, w=1;
-
-  function visible(el){
-    if(!el) return false;
-    if(el.classList.contains('dismissed')) return false;
-    if(el===grade && grade.style.display==='none') return false; // grade hides itself when no yesterday data
-    return true;
-  }
-  function activeCards(){ return order.filter(visible); }
-
-  function sizeViewport(f){
-    // viewport height follows the front (visible) card so the flow below doesn't jump
-    const h=f?f.offsetHeight:0;
-    vp.style.height=h?h+'px':'';
-  }
-
-  function sync(){
-    const act=activeCards();
-    if(act.length===0){ wrap.classList.add('gone'); return; }
-    wrap.classList.remove('gone');
-
-    if(act.length===1){
-      // solo: single card in normal flow, no absolute layering, no dots/swipe
-      wrap.classList.add('solo');
-      act[0].classList.add('front'); act[0].classList.remove('back');
-      const other=order.find(c=>c!==act[0]); if(other){ other.classList.remove('front','back'); }
-      vp.style.height='';
-      return;
-    }
-    wrap.classList.remove('solo');
-
-    // clamp front index to a currently-visible card
-    if(!visible(order[front])) front=order.indexOf(act[0]);
-    const f=order[front], b=order[front===0?1:0];
-    f.classList.add('front'); f.classList.remove('back','swiping'); f.style.transform=''; f.style.opacity='';
-    b.classList.add('back');  b.classList.remove('front','swiping'); b.style.transform=''; b.style.opacity='';
-    // dots
-    [...dots.children].forEach((d,i)=>d.classList.toggle('on', i===front));
-    requestAnimationFrame(()=>sizeViewport(f));
-  }
-
-  function go(i){ if(i===front) return; front=i&1; sync(); }
-  function toggle(){ go(front===0?1:0); }
-
-  // ---- pointer / touch swipe ----
-  function start(e){
-    if(wrap.classList.contains('solo')) return;
-    const t=e.touches?e.touches[0]:e;
-    dragging=true; locked=null; dx=0; x0=t.clientX; y0=t.clientY; w=vp.offsetWidth||1;
-    order[front].classList.add('swiping');
-    order[front===0?1:0].classList.add('swiping');
-  }
-  function move(e){
-    if(!dragging) return;
-    const t=e.touches?e.touches[0]:e;
-    const mx=t.clientX-x0, my=t.clientY-y0;
-    if(locked===null){ if(Math.abs(mx)<6 && Math.abs(my)<6) return; locked=Math.abs(mx)>Math.abs(my)?'x':'y'; }
-    if(locked!=='x'){ dragging=false; end(); return; }   // vertical → let the page scroll
-    if(e.cancelable) e.preventDefault();
-    dx=mx;
-    const f=order[front], b=order[front===0?1:0];
-    const p=Math.max(-1,Math.min(1,dx/w));
-    f.style.transform=`translateX(${dx}px)`;
-    f.style.opacity=String(1-Math.abs(p)*0.85);
-    b.style.transform=`translateX(0) scale(${0.965+Math.abs(p)*0.035})`;
-    b.style.opacity=String(Math.abs(p)*0.9);
-  }
-  function end(){
-    if(!dragging && locked!=='x'){ clearSwipe(); return; }
-    dragging=false;
-    const f=order[front], b=order[front===0?1:0];
-    f.classList.remove('swiping'); b.classList.remove('swiping');
-    const flip=Math.abs(dx)>w*0.28;
-    f.style.transform=''; f.style.opacity=''; b.style.transform=''; b.style.opacity='';
-    if(flip) toggle(); else sync();
-    dx=0; locked=null;
-  }
-  function clearSwipe(){
-    order.forEach(c=>{ c.classList.remove('swiping'); c.style.transform=''; c.style.opacity=''; });
-    dx=0; locked=null;
-  }
-
-  vp.addEventListener('touchstart',start,{passive:true});
-  vp.addEventListener('touchmove',move,{passive:false});
-  vp.addEventListener('touchend',end);
-  vp.addEventListener('touchcancel',end);
-  // desktop drag (mouse)
-  vp.addEventListener('mousedown',e=>{ start(e); const mm=ev=>move(ev), mu=()=>{ end(); window.removeEventListener('mousemove',mm); window.removeEventListener('mouseup',mu); }; window.addEventListener('mousemove',mm); window.addEventListener('mouseup',mu); });
-  // tapping a dot jumps to that card
-  [...dots.children].forEach(d=>d.addEventListener('click',()=>go(+d.dataset.i)));
-
-  // dismiss buttons — hide that card for today, restack the rest
-  $('coachDismiss').onclick=e=>{ e.stopPropagation(); setCoachDismissed(true); coach.classList.add('dismissed'); sync(); };
-  $('gradeDismiss').onclick=e=>{ e.stopPropagation(); setGradeDismissed(true); grade.classList.add('dismissed'); sync(); };
-
-  window.addEventListener('resize',()=>requestAnimationFrame(()=>sizeViewport(order[front])));
-
-  return { sync, front:()=>front };
-})();
-// initial layout (before first coach/grade refresh) so front/back + dots are correct on load
-try{ CardStack.sync(); }catch(e){}
+(function(){ const b=$('gradeDismiss'); if(b) b.onclick=(e)=>{ e.stopPropagation();
+  setGradeDismissed(true); const c=$('gradeCard'); if(c) c.classList.add('dismissed'); }; })();
 
 /* Recovery card collapse — persistent (a lasting preference, not a daily thing). */
 function recovCollapsed(){ try{ return localStorage.getItem('whoopdiet.recovCollapsed')==='1'; }catch(e){ return false; } }
@@ -3424,9 +3084,6 @@ const GRADE_COLORS={A:'#3ee19a','A-':'#3ee19a','B+':'#8fd14f',B:'#cdd14f','B-':'
 function gradeColor(g){ return GRADE_COLORS[g] || (g&&g[0]==='A'?'#3ee19a':g&&g[0]==='B'?'#cdd14f':g&&g[0]==='C'?'#e0a04f':'#e0683b'); }
 
 async function refreshGrade(plan){
-  try{ return await _refreshGrade(plan); } finally{ try{ CardStack.sync(); }catch(e){} }
-}
-async function _refreshGrade(plan){
   const card=$('gradeCard'), badge=$('gradeBadge'), txt=$('gradeTxt');
   // dismissed for today — keep it hidden until the day rolls over
   if(gradeDismissed()){ card.classList.add('dismissed'); return; }
@@ -3554,7 +3211,7 @@ $('saveSetup').onclick=()=>{
 async function toggleWhoop(){
   if(S.connected){
     if(WORKER_BASE){ try{ await fetch(`${WORKER_BASE}/disconnect?uid=${encodeURIComponent(deviceId())}`); }catch(e){} }
-    S.connected=false; _todayCache=null; save(S); updateConn(); buildPlan(); toast('Whoop disconnected'); return;
+    S.connected=false; _todayCache=null; _physCache={recovery:null,burnKcal:null,strainKJ:null}; save(S); updateConn(); buildPlan(); toast('Whoop disconnected'); return;
   }
   if(WORKER_BASE){
     // real OAuth: themed name modal, then redirect with a connecting overlay
@@ -4295,7 +3952,7 @@ function runSplash(onEnd){
 async function handleWhoopReturn(){
   if(WORKER_BASE && location.hash.includes('whoop=connected')){
     history.replaceState(null,'',location.pathname+location.search);
-    S.connected=true; _todayCache=null; save(S); updateConn();
+    S.connected=true; _todayCache=null; _physCache={recovery:null,burnKcal:null,strainKJ:null}; save(S); updateConn();
     toast('Whoop connected');
     let filled=false;
     try{
