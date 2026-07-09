@@ -386,7 +386,7 @@
   .homebank-chev{flex-shrink:0;font-size:22px;color:var(--ink-faint);line-height:1}
 
   /* yesterday food grade */
-  .grade{display:flex;gap:13px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);
+  .grade{display:flex;gap:13px;align-items:center;background:var(--panel);border:1px solid var(--line);
     border-radius:var(--r);padding:13px 15px;margin-bottom:14px}
   .grade.dismissed{display:none!important}
   .grade-badge{flex-shrink:0;width:48px;height:48px;border-radius:13px;display:grid;place-items:center;
@@ -497,12 +497,12 @@
   .adjust-btn{width:100%;margin-top:12px;background:none;border:1px dashed var(--line);
     color:var(--ink-dim);font-size:12.5px;font-weight:600;padding:10px;border-radius:11px;cursor:pointer}
   .adjust-btn:active{border-color:var(--goal);color:var(--goal)}
-  .adj-field{margin-bottom:11px}
-  .adj-field label{font-size:11px;color:var(--ink-dim);display:block;margin-bottom:5px;font-weight:600}
+  .adj-field{margin-bottom:9px;min-width:0}
+  .adj-field label{font-size:11px;color:var(--ink-dim);display:block;margin-bottom:4px;font-weight:600}
   .adj-field input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;
-    padding:11px 13px;color:var(--ink);font-size:15px;font-weight:600}
+    padding:9px 12px;color:var(--ink);font-size:15px;font-weight:600}
   .adj-field input:focus{outline:none;border-color:var(--goal)}
-  .adj-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .adj-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
   .adj-hint{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:6px}
   .est-note{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:10px;
     display:flex;gap:6px;align-items:flex-start}
@@ -665,18 +665,56 @@
     opacity:0;pointer-events:none;transition:.25s;z-index:40}
   .scrim.on{opacity:1;pointer-events:auto}
   .sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;
-    max-height:92dvh;display:flex;flex-direction:column;
     background:var(--panel);border-radius:22px 22px 0 0;border:1px solid var(--line);
     border-bottom:none;padding:20px 18px calc(env(safe-area-inset-bottom) + 22px);
     transform:translateY(110%);transition:.3s cubic-bezier(.4,0,.2,1);z-index:50;
-    overflow-y:auto;overflow-x:hidden;overflow-wrap:break-word;-webkit-overflow-scrolling:touch}
+    overflow-x:hidden;overflow-wrap:break-word;
+    /* A sheet must never grow taller than the screen. Without this cap, tall content —
+       the Adjust form is the worst offender at 7 fields — pushes the footer buttons off
+       the bottom with no way to reach them. Scroll inside the sheet instead. */
+    max-height:88svh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  @supports not (height:1svh){ .sheet{max-height:88vh} }
   .sheet.on{transform:translateY(0)}
   .sheet input{max-width:100%}
-  /* food estimate: pin the title/subtitle, scroll only the body so the meal name is always visible */
-  #foodSheet{overflow:hidden}
-  #foodSheet #foodTitle,#foodSheet #foodSub{flex:0 0 auto}
-  #foodSheet #foodBody{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;min-height:0}
-  #foodSheet .food-actions,#foodSheet #closeFood{flex:0 0 auto}
+
+  /* ---------- Form controls: theming the parts CSS doesn't reach by default ----------
+     The input boxes were already on-theme, but the browser-drawn chrome around them
+     was not. Each rule below fixes something the app can't style any other way. */
+
+  /* Tells the browser this is a dark UI, so natively-rendered widgets (caret, spinners,
+     autofill, date/number pickers, scrollbars) draw dark instead of light. */
+  :root{color-scheme:dark}
+
+  /* Placeholders default to a browser grey that's too bright against --bg. */
+  input::placeholder{color:var(--ink-faint);opacity:1}
+  input::-webkit-input-placeholder{color:var(--ink-faint);opacity:1}
+
+  /* Caret and text selection default to system blue; use the app's accent. */
+  input{caret-color:var(--goal)}
+  ::selection{background:rgba(62,225,154,.28);color:var(--ink)}
+
+  /* Chrome/desktop draw stepper arrows on number inputs. Every numeric field here is
+     typed, not stepped, and the arrows clash badly with the dark panels. */
+  input[type=number]{-moz-appearance:textfield;appearance:textfield}
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+
+  /* Chrome paints autofilled fields a hard light blue, overriding background entirely.
+     background-color is not overridable here — the long inset shadow is the only way. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus{
+    -webkit-text-fill-color:var(--ink);
+    -webkit-box-shadow:0 0 0 1000px var(--bg) inset;
+    box-shadow:0 0 0 1000px var(--bg) inset;
+    caret-color:var(--goal);
+    transition:background-color 9999s ease-in-out 0s}
+
+  /* iOS Safari force-zooms the whole page when focusing any input below 16px.
+     Hold the visual size on phones by bumping to 16px only where it was smaller. */
+  @media (max-width:520px){
+    .adj-field input, .chatbar input, .searchbar input{font-size:16px}
+  }
   #searchResults{max-height:46vh;overflow-y:auto;overflow-x:hidden}
   .sheet h2{font-size:18px;margin-bottom:4px}
   .sheet p.s{font-size:13px;color:var(--ink-dim);margin-bottom:18px}
@@ -812,6 +850,7 @@
     font-size:13px;font-weight:700;padding:11px;border-radius:11px;cursor:pointer}
   .cal-add:active{border-color:var(--goal);color:var(--goal)}
 </style>
+<script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js" defer></script>
 </head>
 <body>
   <!-- ===== SPLASH ===== calorie-bank story: ring builds/spends, then resolves into the W logo -->
@@ -1385,7 +1424,9 @@
     <h2>Scan barcode</h2>
     <p class="s" id="scanSub">Point your camera at the product barcode.</p>
     <div class="scanwrap"><video id="scanVideo" playsinline></video><div class="scanline"></div></div>
-    <button class="ghost" id="scanManual" style="margin-top:14px">Enter barcode number instead</button>
+    <input type="file" id="labelFile" accept="image/*" capture="environment" hidden>
+    <button class="ghost" id="labelPhoto" style="margin-top:14px">Photo of nutrition label instead</button>
+    <button class="ghost" id="scanManual" style="margin-top:10px">Enter barcode number instead</button>
     <button class="ghost" id="closeScan" style="margin-top:10px">Cancel</button>
   </div>
 
@@ -1559,6 +1600,26 @@ const MEAL_PROMPT=`You are a professional nutritionist estimating a meal from a 
 
 async function aiEstimateMeal(base64,media){
   const txt=await aiVision(base64,media,MEAL_PROMPT,1000);
+  return parseJSON(txt);
+}
+
+/* Nutrition-label photo. Unlike MEAL_PROMPT this is a transcription job, not an estimate —
+   the panel states the numbers outright, so the model must read them rather than guess.
+   Labels are usually per-100g with a separate per-serving column; we ask for both and
+   prefer per-serving when the label declares one. */
+const LABEL_PROMPT=`You are reading a packaged food's nutrition information panel from a photo. This is a TRANSCRIPTION task, not an estimate — read the printed numbers, do not guess.
+
+Steps: (1) Read the product name from the packaging. (2) Find the nutrition panel. (3) Note whether the figures are per 100g/100ml, per serving, or both. (4) Transcribe energy, protein, carbohydrate, fat, fibre and sugar. If energy is given only in kJ, convert to kcal by dividing by 4.184. If a value is genuinely absent from the panel, use null — never invent it.
+
+Report the per-serving column when the label declares a serving size. Otherwise report per 100g and say so in "basis".
+
+Respond with ONLY valid JSON, no prose, no markdown:
+{"dish":"product name","brand":"brand or empty string","basis":"per serving (30 g)" or "per 100 g","kcal":number,"protein_g":number,"carb_g":number,"fat_g":number,"fiber_g":number|null,"sugar_g":number|null,"confidence":"high"|"medium"|"low"}
+
+Set confidence to "low" if the panel is blurred, cropped, or angled such that any digit is uncertain.`;
+
+async function aiEstimateLabel(base64,media){
+  const txt=await aiVision(base64,media,LABEL_PROMPT,800);
   return parseJSON(txt);
 }
 
@@ -1749,6 +1810,111 @@ const MY_FOOD_DB=[
   {dish:'Limau ais (sweet)',kcal:90,protein_g:0,carb_g:23,fat_g:0,fiber_g:0,sugar_g:22,tags:'limau lime drink'},
   {dish:'100 Plus (can 325ml)',kcal:90,protein_g:0,carb_g:22,fat_g:0,fiber_g:0,sugar_g:22,tags:'100 plus isotonic'},
   {dish:'Kelapa / coconut water',kcal:60,protein_g:1,carb_g:14,fat_g:0,fiber_g:1,sugar_g:12,tags:'coconut kelapa'},
+
+  // — More rice & nasi —
+  {dish:'Nasi lemak ayam rendang',kcal:720,protein_g:32,carb_g:64,fat_g:37,fiber_g:4,sugar_g:9,tags:'nasi lemak rendang chicken'},
+  {dish:'Nasi lemak sotong sambal',kcal:590,protein_g:24,carb_g:60,fat_g:27,fiber_g:3,sugar_g:10,tags:'nasi lemak squid sotong'},
+  {dish:'Nasi goreng pattaya',kcal:640,protein_g:22,carb_g:72,fat_g:28,fiber_g:3,sugar_g:7,tags:'fried rice egg pattaya'},
+  {dish:'Nasi goreng cina',kcal:560,protein_g:18,carb_g:70,fat_g:22,fiber_g:3,sugar_g:5,tags:'fried rice chinese'},
+  {dish:'Nasi goreng seafood',kcal:610,protein_g:26,carb_g:70,fat_g:24,fiber_g:3,sugar_g:6,tags:'fried rice seafood'},
+  {dish:'Nasi kerabu',kcal:480,protein_g:20,carb_g:62,fat_g:16,fiber_g:6,sugar_g:5,tags:'nasi kerabu kelantan'},
+  {dish:'Nasi briyani kambing',kcal:780,protein_g:34,carb_g:76,fat_g:36,fiber_g:4,sugar_g:6,tags:'briyani mutton lamb'},
+  {dish:'Nasi minyak w/ ayam masak merah',kcal:700,protein_g:30,carb_g:78,fat_g:28,fiber_g:3,sugar_g:10,tags:'nasi minyak kenduri'},
+  {dish:'Nasi tomato',kcal:430,protein_g:8,carb_g:66,fat_g:15,fiber_g:2,sugar_g:8,tags:'nasi tomato'},
+  {dish:'Nasi ayam penyet',kcal:680,protein_g:33,carb_g:66,fat_g:31,fiber_g:4,sugar_g:6,tags:'ayam penyet'},
+  {dish:'Nasi kukus ayam berempah',kcal:640,protein_g:31,carb_g:64,fat_g:28,fiber_g:3,sugar_g:4,tags:'nasi kukus'},
+  {dish:'Lontong (with kuah lodeh)',kcal:420,protein_g:10,carb_g:52,fat_g:19,fiber_g:5,sugar_g:6,tags:'lontong'},
+  {dish:'Ketupat (2 pcs)',kcal:180,protein_g:3,carb_g:40,fat_g:0,fiber_g:1,sugar_g:0,tags:'ketupat rice'},
+  {dish:'Bubur ayam',kcal:280,protein_g:14,carb_g:40,fat_g:7,fiber_g:1,sugar_g:2,tags:'porridge congee bubur'},
+  {dish:'Brown rice (1 cup)',kcal:220,protein_g:5,carb_g:46,fat_g:2,fiber_g:3,sugar_g:0,tags:'rice brown'},
+
+  // — More noodles —
+  {dish:'Kuey teow soup',kcal:340,protein_g:16,carb_g:52,fat_g:8,fiber_g:2,sugar_g:3,tags:'noodle kuey teow soup'},
+  {dish:'Char kuey teow (with egg + prawn)',kcal:820,protein_g:26,carb_g:82,fat_g:42,fiber_g:3,sugar_g:8,tags:'ckt noodle'},
+  {dish:'Mee goreng basah',kcal:600,protein_g:18,carb_g:74,fat_g:25,fiber_g:4,sugar_g:9,tags:'noodle mee goreng'},
+  {dish:'Mee soup (ayam)',kcal:360,protein_g:20,carb_g:48,fat_g:9,fiber_g:3,sugar_g:3,tags:'noodle mee soup chicken'},
+  {dish:'Wantan mee (soup)',kcal:400,protein_g:20,carb_g:54,fat_g:11,fiber_g:3,sugar_g:3,tags:'wantan wonton noodle'},
+  {dish:'Curry mee',kcal:620,protein_g:20,carb_g:60,fat_g:33,fiber_g:4,sugar_g:6,tags:'curry mee noodle'},
+  {dish:'Prawn mee (Penang hae mee)',kcal:480,protein_g:22,carb_g:58,fat_g:17,fiber_g:3,sugar_g:4,tags:'prawn mee hokkien penang'},
+  {dish:'Lor mee',kcal:520,protein_g:20,carb_g:66,fat_g:19,fiber_g:3,sugar_g:5,tags:'lor mee noodle'},
+  {dish:'Pan mee (soup)',kcal:420,protein_g:18,carb_g:56,fat_g:13,fiber_g:3,sugar_g:3,tags:'pan mee noodle'},
+  {dish:'Chee cheong fun',kcal:280,protein_g:6,carb_g:48,fat_g:7,fiber_g:2,sugar_g:6,tags:'chee cheong fun'},
+  {dish:'Laksa Johor',kcal:560,protein_g:22,carb_g:64,fat_g:24,fiber_g:4,sugar_g:7,tags:'laksa johor'},
+  {dish:'Laksa Sarawak',kcal:540,protein_g:24,carb_g:52,fat_g:26,fiber_g:3,sugar_g:5,tags:'laksa sarawak'},
+  {dish:'Kolo mee',kcal:420,protein_g:18,carb_g:54,fat_g:14,fiber_g:2,sugar_g:4,tags:'kolo mee sarawak'},
+  {dish:'Mee siam',kcal:440,protein_g:12,carb_g:62,fat_g:16,fiber_g:3,sugar_g:10,tags:'mee siam'},
+  {dish:'Instant noodles (1 pack, cooked)',kcal:380,protein_g:8,carb_g:52,fat_g:15,fiber_g:2,sugar_g:2,tags:'maggi instant noodle'},
+
+  // — Mamak & Indian —
+  {dish:'Roti canai banjir',kcal:420,protein_g:9,carb_g:52,fat_g:19,fiber_g:3,sugar_g:4,tags:'roti canai banjir'},
+  {dish:'Roti planta',kcal:400,protein_g:7,carb_g:50,fat_g:19,fiber_g:2,sugar_g:6,tags:'roti planta'},
+  {dish:'Roti bom',kcal:450,protein_g:7,carb_g:56,fat_g:22,fiber_g:2,sugar_g:12,tags:'roti bom'},
+  {dish:'Roti sardin',kcal:430,protein_g:16,carb_g:48,fat_g:19,fiber_g:3,sugar_g:4,tags:'roti sardin'},
+  {dish:'Chapati (1 pc)',kcal:150,protein_g:5,carb_g:26,fat_g:3,fiber_g:3,sugar_g:1,tags:'chapati roti india'},
+  {dish:'Naan (plain)',kcal:280,protein_g:8,carb_g:48,fat_g:6,fiber_g:2,sugar_g:3,tags:'naan bread'},
+  {dish:'Thosai masala',kcal:340,protein_g:8,carb_g:56,fat_g:9,fiber_g:4,sugar_g:3,tags:'thosai tosai masala'},
+  {dish:'Idli (2 pcs)',kcal:120,protein_g:4,carb_g:24,fat_g:1,fiber_g:1,sugar_g:0,tags:'idli'},
+  {dish:'Vadai (1 pc)',kcal:140,protein_g:5,carb_g:16,fat_g:7,fiber_g:2,sugar_g:1,tags:'vadai vada'},
+  {dish:'Murtabak ayam',kcal:620,protein_g:26,carb_g:58,fat_g:31,fiber_g:3,sugar_g:5,tags:'murtabak'},
+  {dish:'Mee mamak goreng basah',kcal:590,protein_g:17,carb_g:72,fat_g:24,fiber_g:4,sugar_g:9,tags:'mamak mee'},
+  {dish:'Rojak mamak',kcal:400,protein_g:12,carb_g:44,fat_g:20,fiber_g:5,sugar_g:14,tags:'rojak mamak'},
+  {dish:'Tandoori chicken (1 piece)',kcal:220,protein_g:28,carb_g:3,fat_g:11,fiber_g:0,sugar_g:1,tags:'tandoori chicken'},
+  {dish:'Fish head curry (portion)',kcal:380,protein_g:30,carb_g:10,fat_g:24,fiber_g:2,sugar_g:5,tags:'fish head curry'},
+  {dish:'Dhal curry (1 scoop)',kcal:130,protein_g:7,carb_g:18,fat_g:3,fiber_g:5,sugar_g:2,tags:'dhal dal lentil'},
+
+  // — Chinese, dim sum, zi char —
+  {dish:'Siew mai (3 pcs)',kcal:150,protein_g:10,carb_g:10,fat_g:8,fiber_g:1,sugar_g:1,tags:'dim sum siew mai shumai'},
+  {dish:'Har gow (3 pcs)',kcal:120,protein_g:8,carb_g:14,fat_g:3,fiber_g:1,sugar_g:1,tags:'dim sum har gow prawn dumpling'},
+  {dish:'Char siew pau (1 pc)',kcal:230,protein_g:8,carb_g:36,fat_g:6,fiber_g:1,sugar_g:9,tags:'dim sum pau bun'},
+  {dish:'Lo mai gai (1 pc)',kcal:290,protein_g:10,carb_g:42,fat_g:9,fiber_g:1,sugar_g:2,tags:'dim sum glutinous rice'},
+  {dish:'Chicken rice (steamed, 1 plate)',kcal:520,protein_g:30,carb_g:62,fat_g:17,fiber_g:2,sugar_g:2,tags:'chicken rice steamed'},
+  {dish:'Roast pork rice',kcal:640,protein_g:28,carb_g:64,fat_g:30,fiber_g:2,sugar_g:4,tags:'siew yoke roast pork'},
+  {dish:'Char siew rice',kcal:600,protein_g:28,carb_g:70,fat_g:22,fiber_g:2,sugar_g:12,tags:'char siew bbq pork rice'},
+  {dish:'Bak kut teh (with rice)',kcal:620,protein_g:34,carb_g:56,fat_g:27,fiber_g:2,sugar_g:3,tags:'bak kut teh'},
+  {dish:'Yong tau foo (6 pcs, soup)',kcal:280,protein_g:20,carb_g:18,fat_g:14,fiber_g:3,sugar_g:3,tags:'yong tau foo ytf'},
+  {dish:'Sweet & sour chicken (portion)',kcal:420,protein_g:24,carb_g:38,fat_g:19,fiber_g:2,sugar_g:20,tags:'sweet sour chicken'},
+  {dish:'Kung pao chicken (portion)',kcal:400,protein_g:26,carb_g:20,fat_g:24,fiber_g:3,sugar_g:8,tags:'kung pao chicken'},
+  {dish:'Sambal kangkung (1 scoop)',kcal:140,protein_g:3,carb_g:9,fat_g:11,fiber_g:3,sugar_g:3,tags:'kangkung vegetable sayur'},
+  {dish:'Steamed fish (portion)',kcal:240,protein_g:32,carb_g:4,fat_g:11,fiber_g:0,sugar_g:2,tags:'steamed fish ikan'},
+
+  // — Malay lauk & sides —
+  {dish:'Ayam masak merah (1 piece)',kcal:290,protein_g:24,carb_g:10,fat_g:18,fiber_g:1,sugar_g:7,tags:'ayam masak merah'},
+  {dish:'Ayam percik (1 piece)',kcal:270,protein_g:26,carb_g:8,fat_g:15,fiber_g:1,sugar_g:5,tags:'ayam percik'},
+  {dish:'Rendang daging (1 scoop)',kcal:340,protein_g:22,carb_g:6,fat_g:26,fiber_g:2,sugar_g:3,tags:'rendang beef daging'},
+  {dish:'Ikan bakar (1 fish)',kcal:280,protein_g:34,carb_g:4,fat_g:14,fiber_g:1,sugar_g:2,tags:'ikan bakar grilled fish'},
+  {dish:'Ikan goreng (1 fish)',kcal:320,protein_g:30,carb_g:2,fat_g:21,fiber_g:0,sugar_g:0,tags:'ikan goreng fried fish'},
+  {dish:'Sambal sotong (1 scoop)',kcal:220,protein_g:18,carb_g:12,fat_g:12,fiber_g:1,sugar_g:6,tags:'sotong squid sambal'},
+  {dish:'Telur dadar (omelette)',kcal:200,protein_g:12,carb_g:2,fat_g:16,fiber_g:0,sugar_g:1,tags:'telur egg omelette'},
+  {dish:'Telur sambal (1 egg)',kcal:180,protein_g:8,carb_g:6,fat_g:14,fiber_g:1,sugar_g:4,tags:'telur egg sambal'},
+  {dish:'Tempe goreng (1 scoop)',kcal:190,protein_g:12,carb_g:10,fat_g:12,fiber_g:4,sugar_g:2,tags:'tempe tempeh'},
+  {dish:'Tauhu sumbat (2 pcs)',kcal:180,protein_g:9,carb_g:14,fat_g:10,fiber_g:2,sugar_g:3,tags:'tauhu tofu'},
+  {dish:'Sayur campur (1 scoop)',kcal:80,protein_g:2,carb_g:8,fat_g:4,fiber_g:3,sugar_g:3,tags:'sayur vegetable'},
+  {dish:'Kerabu taugeh',kcal:70,protein_g:3,carb_g:7,fat_g:3,fiber_g:2,sugar_g:3,tags:'kerabu taugeh vegetable'},
+  {dish:'Ulam with sambal belacan',kcal:60,protein_g:3,carb_g:6,fat_g:2,fiber_g:3,sugar_g:2,tags:'ulam vegetable sayur'},
+
+  // — Fast food —
+  {dish:'McD Big Mac',kcal:560,protein_g:26,carb_g:46,fat_g:30,fiber_g:3,sugar_g:9,tags:'mcdonalds burger fast food'},
+  {dish:'McD McChicken',kcal:400,protein_g:15,carb_g:40,fat_g:20,fiber_g:2,sugar_g:5,tags:'mcdonalds burger fast food'},
+  {dish:'McD fries (medium)',kcal:340,protein_g:4,carb_g:44,fat_g:16,fiber_g:4,sugar_g:0,tags:'mcdonalds fries fast food'},
+  {dish:'McD spicy chicken (1 pc)',kcal:290,protein_g:20,carb_g:14,fat_g:17,fiber_g:1,sugar_g:0,tags:'mcdonalds fried chicken'},
+  {dish:'KFC original recipe (1 pc)',kcal:280,protein_g:21,carb_g:9,fat_g:18,fiber_g:1,sugar_g:0,tags:'kfc fried chicken fast food'},
+  {dish:'KFC hot & spicy (1 pc)',kcal:320,protein_g:20,carb_g:13,fat_g:21,fiber_g:1,sugar_g:0,tags:'kfc fried chicken'},
+  {dish:'KFC Zinger burger',kcal:450,protein_g:24,carb_g:44,fat_g:20,fiber_g:3,sugar_g:6,tags:'kfc burger zinger'},
+  {dish:'Subway 6" turkey',kcal:280,protein_g:18,carb_g:44,fat_g:4,fiber_g:5,sugar_g:6,tags:'subway sandwich'},
+  {dish:'Pizza (1 slice, pepperoni)',kcal:300,protein_g:13,carb_g:32,fat_g:13,fiber_g:2,sugar_g:4,tags:'pizza fast food'},
+  {dish:'Ramly burger special',kcal:520,protein_g:22,carb_g:38,fat_g:31,fiber_g:2,sugar_g:8,tags:'ramly burger'},
+
+  // — Fruit & healthy —
+  {dish:'Durian (3 seeds)',kcal:220,protein_g:2,carb_g:40,fat_g:8,fiber_g:4,sugar_g:26,tags:'durian fruit buah'},
+  {dish:'Rambutan (10 pcs)',kcal:110,protein_g:1,carb_g:28,fat_g:0,fiber_g:1,sugar_g:24,tags:'rambutan fruit buah'},
+  {dish:'Mangosteen (5 pcs)',kcal:90,protein_g:1,carb_g:22,fat_g:0,fiber_g:2,sugar_g:18,tags:'manggis mangosteen fruit'},
+  {dish:'Guava (1 medium)',kcal:110,protein_g:4,carb_g:24,fat_g:2,fiber_g:9,sugar_g:15,tags:'jambu guava fruit'},
+  {dish:'Dragon fruit (1 medium)',kcal:100,protein_g:2,carb_g:24,fat_g:0,fiber_g:5,sugar_g:16,tags:'dragon fruit buah naga'},
+  {dish:'Protein shake (1 scoop + water)',kcal:120,protein_g:25,carb_g:3,fat_g:1,fiber_g:0,sugar_g:2,tags:'protein shake whey gym'},
+  {dish:'Overnight oats (plain)',kcal:300,protein_g:11,carb_g:48,fat_g:7,fiber_g:7,sugar_g:6,tags:'oats gym breakfast'},
+  {dish:'Chicken breast + rice + veg (meal prep)',kcal:520,protein_g:45,carb_g:56,fat_g:9,fiber_g:4,sugar_g:2,tags:'meal prep gym chicken'},
+  {dish:'Greek yoghurt + berries',kcal:180,protein_g:16,carb_g:20,fat_g:3,fiber_g:3,sugar_g:14,tags:'yoghurt gym snack'},
+  {dish:'Boiled eggs (2) + toast',kcal:290,protein_g:17,carb_g:26,fat_g:13,fiber_g:2,sugar_g:3,tags:'egg toast breakfast gym'}
 ];
 /* search the local DB by name/tags; returns result objects matching offToItem shape */
 /* Words too generic to signal a real match on their own. */
@@ -1788,11 +1954,321 @@ function searchLocalDB(term){
   }));
 }
 
+/* ---------- Tier 2: bundled USDA staples (offline, AI-free) ----------
+   Source: USDA FoodData Central (SR Legacy / Foundation Foods), public domain (CC0).
+   Values are per 100 g edible portion. `serv` is a sensible default serving in grams
+   so the app can show a per-serving figure without the user weighing anything.
+   These are ingredient-level baselines — plain, unprepared foods. Cooked composite
+   dishes belong in MY_FOOD_DB (tier 1) or fall through to OFF / AI. */
+const USDA_DB=[
+  // — Grains, rice, bread, pasta (cooked unless noted) —
+  {name:'White rice, cooked',            serv:158, kcal:130, p:2.7,  c:28.2, f:0.3,  fi:0.4, s:0.1, tags:'rice nasi putih steamed'},
+  {name:'Brown rice, cooked',            serv:195, kcal:123, p:2.7,  c:25.6, f:1.0,  fi:1.6, s:0.2, tags:'rice brown'},
+  {name:'Basmati rice, cooked',          serv:158, kcal:121, p:3.5,  c:25.2, f:0.4,  fi:0.7, s:0.1, tags:'rice basmati'},
+  {name:'Spaghetti, cooked',             serv:140, kcal:158, p:5.8,  c:30.9, f:0.9,  fi:1.8, s:0.6, tags:'pasta spaghetti noodle'},
+  {name:'Egg noodles, cooked',           serv:160, kcal:138, p:4.5,  c:25.2, f:2.1,  fi:1.2, s:0.4, tags:'noodle mee'},
+  {name:'Rice noodles, cooked',          serv:176, kcal:109, p:0.9,  c:24.9, f:0.2,  fi:1.0, s:0.0, tags:'noodle kuey teow bihun rice'},
+  {name:'White bread',                   serv:28,  kcal:266, p:9.0,  c:49.0, f:3.3,  fi:2.7, s:5.7, tags:'bread roti'},
+  {name:'Wholemeal bread',               serv:32,  kcal:247, p:13.0, c:41.0, f:3.4,  fi:7.0, s:5.6, tags:'bread wholemeal wholewheat'},
+  {name:'Rolled oats, dry',              serv:40,  kcal:389, p:16.9, c:66.3, f:6.9,  fi:10.6,s:0.0, tags:'oats oatmeal porridge'},
+  {name:'Quinoa, cooked',                serv:185, kcal:120, p:4.4,  c:21.3, f:1.9,  fi:2.8, s:0.9, tags:'quinoa grain'},
+  {name:'Couscous, cooked',              serv:157, kcal:112, p:3.8,  c:23.2, f:0.2,  fi:1.4, s:0.1, tags:'couscous'},
+  {name:'Cornflakes',                    serv:30,  kcal:357, p:7.5,  c:84.1, f:0.4,  fi:3.3, s:8.5, tags:'cereal cornflakes breakfast'},
+
+  // — Poultry, meat —
+  {name:'Chicken breast, skinless, cooked', serv:120, kcal:165, p:31.0, c:0.0,  f:3.6,  fi:0.0, s:0.0, tags:'chicken ayam breast dada'},
+  {name:'Chicken thigh, skinless, cooked',  serv:110, kcal:209, p:26.0, c:0.0,  f:10.9, fi:0.0, s:0.0, tags:'chicken ayam thigh peha'},
+  {name:'Chicken, whole, roasted w/ skin',  serv:140, kcal:239, p:27.3, c:0.0,  f:13.6, fi:0.0, s:0.0, tags:'chicken ayam roast'},
+  {name:'Beef, lean, cooked',               serv:120, kcal:250, p:26.0, c:0.0,  f:15.0, fi:0.0, s:0.0, tags:'beef daging lembu steak'},
+  {name:'Beef mince, 85% lean, cooked',     serv:100, kcal:250, p:26.1, c:0.0,  f:15.4, fi:0.0, s:0.0, tags:'beef mince ground'},
+  {name:'Lamb, lean, cooked',               serv:110, kcal:258, p:25.6, c:0.0,  f:16.5, fi:0.0, s:0.0, tags:'lamb kambing mutton'},
+  {name:'Pork loin, cooked',                serv:110, kcal:242, p:27.3, c:0.0,  f:14.0, fi:0.0, s:0.0, tags:'pork babi'},
+  {name:'Duck, roasted, w/ skin',           serv:110, kcal:337, p:19.0, c:0.0,  f:28.4, fi:0.0, s:0.0, tags:'duck itik'},
+  {name:'Turkey breast, cooked',            serv:110, kcal:135, p:30.1, c:0.0,  f:0.7,  fi:0.0, s:0.0, tags:'turkey'},
+
+  // — Fish & seafood —
+  {name:'Salmon, cooked',            serv:120, kcal:206, p:22.1, c:0.0,  f:12.4, fi:0.0, s:0.0, tags:'salmon fish ikan'},
+  {name:'Tuna, canned in water',     serv:100, kcal:116, p:25.5, c:0.0,  f:0.8,  fi:0.0, s:0.0, tags:'tuna fish canned'},
+  {name:'Mackerel, cooked',          serv:110, kcal:262, p:23.9, c:0.0,  f:17.8, fi:0.0, s:0.0, tags:'mackerel ikan kembung'},
+  {name:'Tilapia, cooked',           serv:110, kcal:129, p:26.2, c:0.0,  f:2.7,  fi:0.0, s:0.0, tags:'tilapia fish ikan'},
+  {name:'Prawns, cooked',            serv:85,  kcal:99,  p:24.0, c:0.2,  f:0.3,  fi:0.0, s:0.0, tags:'prawn shrimp udang'},
+  {name:'Squid, cooked',             serv:85,  kcal:175, p:17.9, c:7.8,  f:7.5,  fi:0.0, s:0.0, tags:'squid sotong calamari'},
+  {name:'Anchovies, dried',          serv:15,  kcal:210, p:38.0, c:0.0,  f:5.0,  fi:0.0, s:0.0, tags:'anchovy ikan bilis'},
+
+  // — Eggs & dairy —
+  {name:'Egg, whole, boiled',        serv:50,  kcal:155, p:12.6, c:1.1,  f:10.6, fi:0.0, s:1.1, tags:'egg telur'},
+  {name:'Egg white',                 serv:33,  kcal:52,  p:10.9, c:0.7,  f:0.2,  fi:0.0, s:0.7, tags:'egg white putih telur'},
+  {name:'Milk, full fat',            serv:250, kcal:61,  p:3.2,  c:4.8,  f:3.3,  fi:0.0, s:5.1, tags:'milk susu'},
+  {name:'Milk, skimmed',             serv:250, kcal:34,  p:3.4,  c:5.0,  f:0.1,  fi:0.0, s:5.1, tags:'milk susu skim lowfat'},
+  {name:'Greek yoghurt, plain, low fat', serv:170, kcal:59, p:10.2, c:3.6, f:0.4, fi:0.0, s:3.2, tags:'yoghurt yogurt greek'},
+  {name:'Yoghurt, plain, whole milk', serv:170, kcal:61,  p:3.5,  c:4.7,  f:3.3,  fi:0.0, s:4.7, tags:'yoghurt yogurt'},
+  {name:'Cheddar cheese',            serv:30,  kcal:403, p:24.9, c:1.3,  f:33.1, fi:0.0, s:0.5, tags:'cheese keju cheddar'},
+  {name:'Butter',                    serv:10,  kcal:717, p:0.9,  c:0.1,  f:81.1, fi:0.0, s:0.1, tags:'butter mentega'},
+
+  // — Legumes, soy, nuts —
+  {name:'Chickpeas, cooked',         serv:164, kcal:164, p:8.9,  c:27.4, f:2.6,  fi:7.6, s:4.8, tags:'chickpea kacang garbanzo'},
+  {name:'Lentils, cooked',           serv:198, kcal:116, p:9.0,  c:20.1, f:0.4,  fi:7.9, s:1.8, tags:'lentil dhal dal'},
+  {name:'Black beans, cooked',       serv:172, kcal:132, p:8.9,  c:23.7, f:0.5,  fi:8.7, s:0.3, tags:'beans kacang hitam'},
+  {name:'Red kidney beans, cooked',  serv:177, kcal:127, p:8.7,  c:22.8, f:0.5,  fi:6.4, s:0.3, tags:'beans kidney'},
+  {name:'Tofu, firm',                serv:100, kcal:144, p:17.3, c:2.8,  f:8.7,  fi:2.3, s:0.6, tags:'tofu tauhu soy'},
+  {name:'Tempeh',                    serv:100, kcal:193, p:19.0, c:9.4,  f:10.8, fi:0.0, s:0.0, tags:'tempeh tempe soy'},
+  {name:'Soy milk, unsweetened',     serv:250, kcal:33,  p:2.9,  c:1.8,  f:1.6,  fi:0.4, s:0.9, tags:'soy milk susu soya'},
+  {name:'Peanuts, roasted',          serv:28,  kcal:587, p:24.4, c:21.5, f:49.7, fi:8.0, s:4.2, tags:'peanut kacang nut'},
+  {name:'Almonds',                   serv:28,  kcal:579, p:21.2, c:21.6, f:49.9, fi:12.5,s:4.4, tags:'almond nut badam'},
+  {name:'Cashews',                   serv:28,  kcal:553, p:18.2, c:30.2, f:43.9, fi:3.3, s:5.9, tags:'cashew nut gajus'},
+  {name:'Peanut butter',             serv:32,  kcal:588, p:22.5, c:22.3, f:50.4, fi:5.0, s:9.2, tags:'peanut butter'},
+
+  // — Fruit —
+  {name:'Banana',                    serv:118, kcal:89,  p:1.1,  c:22.8, f:0.3,  fi:2.6, s:12.2,tags:'banana pisang fruit'},
+  {name:'Apple',                     serv:182, kcal:52,  p:0.3,  c:13.8, f:0.2,  fi:2.4, s:10.4,tags:'apple epal fruit'},
+  {name:'Orange',                    serv:131, kcal:47,  p:0.9,  c:11.8, f:0.1,  fi:2.4, s:9.4, tags:'orange oren fruit'},
+  {name:'Papaya',                    serv:145, kcal:43,  p:0.5,  c:10.8, f:0.3,  fi:1.7, s:7.8, tags:'papaya betik fruit'},
+  {name:'Watermelon',                serv:152, kcal:30,  p:0.6,  c:7.6,  f:0.2,  fi:0.4, s:6.2, tags:'watermelon tembikai fruit'},
+  {name:'Mango',                     serv:165, kcal:60,  p:0.8,  c:15.0, f:0.4,  fi:1.6, s:13.7,tags:'mango mangga fruit'},
+  {name:'Grapes',                    serv:151, kcal:69,  p:0.7,  c:18.1, f:0.2,  fi:0.9, s:15.5,tags:'grape anggur fruit'},
+  {name:'Pineapple',                 serv:165, kcal:50,  p:0.5,  c:13.1, f:0.1,  fi:1.4, s:9.9, tags:'pineapple nanas fruit'},
+  {name:'Avocado',                   serv:100, kcal:160, p:2.0,  c:8.5,  f:14.7, fi:6.7, s:0.7, tags:'avocado fruit'},
+  {name:'Strawberries',              serv:152, kcal:32,  p:0.7,  c:7.7,  f:0.3,  fi:2.0, s:4.9, tags:'strawberry berry fruit'},
+
+  // — Vegetables —
+  {name:'Broccoli, cooked',          serv:156, kcal:35,  p:2.4,  c:7.2,  f:0.4,  fi:3.3, s:1.4, tags:'broccoli vegetable sayur'},
+  {name:'Spinach, cooked',           serv:180, kcal:23,  p:3.0,  c:3.8,  f:0.3,  fi:2.4, s:0.4, tags:'spinach bayam vegetable sayur'},
+  {name:'Kangkung, cooked',          serv:100, kcal:24,  p:2.6,  c:3.1,  f:0.2,  fi:2.1, s:0.0, tags:'kangkung water spinach sayur'},
+  {name:'Carrot, raw',               serv:61,  kcal:41,  p:0.9,  c:9.6,  f:0.2,  fi:2.8, s:4.7, tags:'carrot lobak vegetable sayur'},
+  {name:'Tomato, raw',               serv:123, kcal:18,  p:0.9,  c:3.9,  f:0.2,  fi:1.2, s:2.6, tags:'tomato vegetable'},
+  {name:'Cucumber, raw',             serv:104, kcal:15,  p:0.7,  c:3.6,  f:0.1,  fi:0.5, s:1.7, tags:'cucumber timun vegetable sayur'},
+  {name:'Cabbage, cooked',           serv:150, kcal:23,  p:1.3,  c:5.5,  f:0.1,  fi:1.9, s:2.8, tags:'cabbage kubis vegetable sayur'},
+  {name:'Potato, boiled',            serv:150, kcal:87,  p:1.9,  c:20.1, f:0.1,  fi:1.8, s:0.9, tags:'potato kentang'},
+  {name:'Sweet potato, boiled',      serv:150, kcal:76,  p:1.4,  c:17.7, f:0.1,  fi:2.5, s:5.7, tags:'sweet potato keledek'},
+  {name:'Beansprouts, raw',          serv:100, kcal:30,  p:3.0,  c:5.9,  f:0.2,  fi:1.8, s:4.1, tags:'beansprout taugeh vegetable sayur'},
+
+  // — Fats, oils, extras —
+  {name:'Olive oil',                 serv:14,  kcal:884, p:0.0,  c:0.0,  f:100.0,fi:0.0, s:0.0, tags:'oil olive minyak'},
+  {name:'Coconut oil',               serv:14,  kcal:892, p:0.0,  c:0.0,  f:99.1, fi:0.0, s:0.0, tags:'oil coconut minyak kelapa'},
+  {name:'Coconut milk, canned',      serv:100, kcal:230, p:2.3,  c:5.5,  f:23.8, fi:2.2, s:3.3, tags:'coconut milk santan'},
+  {name:'Sugar, white',              serv:4,   kcal:387, p:0.0,  c:100.0,f:0.0,  fi:0.0, s:100.0,tags:'sugar gula'},
+  {name:'Honey',                     serv:21,  kcal:304, p:0.3,  c:82.4, f:0.0,  fi:0.2, s:82.1,tags:'honey madu'},
+  {name:'Mayonnaise',                serv:14,  kcal:680, p:1.0,  c:0.6,  f:75.0, fi:0.0, s:0.6, tags:'mayo mayonnaise'},
+  {name:'Dark chocolate, 70%',       serv:20,  kcal:598, p:7.8,  c:45.9, f:42.6, fi:10.9,s:24.0,tags:'chocolate coklat dark'}
+];
+
+/* Turn a bundled USDA row (per 100 g) into the standard item shape used by showEstimate().
+   `grams` defaults to the row's sensible serving size. */
+function usdaToItem(row, grams){
+  const g = grams || row.serv || 100;
+  const k = g/100;
+  const r1=v=>Math.round(v*10)/10;
+  return {
+    dish: row.name,
+    brand: '',
+    basis: `${g} g · USDA`,
+    kcal: Math.round(row.kcal*k),
+    protein_g: r1(row.p*k),
+    carb_g:    r1(row.c*k),
+    fat_g:     r1(row.f*k),
+    fiber_g:   r1(row.fi*k),
+    sugar_g:   r1(row.s*k),
+    grams: g,
+    usda: true,
+    per100: { energy:row.kcal, protein:row.p, fiber:row.fi, sugar:row.s }
+  };
+}
+
+/* Tier 2 search: bundled USDA table. Same whole-word scoring discipline as searchLocalDB. */
+function searchUSDA(term){
+  const q=(term||'').trim().toLowerCase();
+  if(!q) return [];
+  const hasWord=(hay,w)=>new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(hay);
+  const words=q.split(/[^a-z0-9]+/).filter(w=>w.length>=2);
+  const meaningful=words.filter(w=>!LOCAL_STOP.has(w));
+  const tokens=meaningful.length?meaningful:words;
+  const scored=USDA_DB.map(row=>{
+    const name=row.name.toLowerCase();
+    const hay=(row.name+' '+(row.tags||'')).toLowerCase();
+    let hits=0,nameHits=0,score=0;
+    if(hay.includes(q)) score+=10;
+    tokens.forEach(w=>{ if(hasWord(hay,w)){ hits++; score+=3; if(hasWord(name,w)) nameHits++; } });
+    if(name.startsWith(q)) score+=5;
+    return {row,score,hits,nameHits};
+  })
+  .filter(x=> x.score>=10 || x.nameHits>0 || (tokens.length<=2 && x.hits>0))
+  .sort((a,b)=>b.score-a.score).slice(0,6);
+  return scored.map(({row})=>usdaToItem(row));
+}
+
+/* Tier 3: live USDA FoodData Central, proxied through the Worker so the API key
+   never ships in the client. Returns [] on any failure — the ladder just moves on. */
+async function searchUSDALive(term){
+  if(!WORKER_BASE) return [];
+  try{
+    const r=await fetch(`${WORKER_BASE}/usda?q=${encodeURIComponent(term)}`);
+    if(!r.ok) return [];
+    const d=await r.json();
+    const foods=(d.foods||[]).slice(0,6);
+    const pick=(nutrients,names)=>{
+      for(const n of names){
+        const hit=nutrients.find(x=>(x.nutrientName||'').toLowerCase()===n);
+        if(hit && hit.value!=null) return hit.value;
+      }
+      return 0;
+    };
+    return foods.map(f=>{
+      const n=f.foodNutrients||[];
+      const row={
+        name:(f.description||'Food').replace(/\s+/g,' ').trim(),
+        serv:100,
+        kcal:pick(n,['energy']),
+        p:pick(n,['protein']),
+        c:pick(n,['carbohydrate, by difference']),
+        f:pick(n,['total lipid (fat)']),
+        fi:pick(n,['fiber, total dietary']),
+        s:pick(n,['sugars, total including nlea','total sugars'])
+      };
+      if(!row.kcal) return null;
+      const item=usdaToItem(row,100);
+      item.basis='per 100 g · USDA';
+      item.usdaLive=true;
+      return item;
+    }).filter(Boolean);
+  }catch(e){ return []; }
+}
+
+/* ---------- The resolution ladder ----------
+   1. Curated Malaysian DB   — instant, offline, best for local composite dishes
+   2. Bundled USDA staples   — instant, offline, best for plain ingredients
+   3. Live USDA              — network, wide ingredient coverage
+   4. Open Food Facts        — network, best for packaged/branded products
+   5. AI estimate            — last resort, handled by the caller
+
+   Returns { items, tier } where tier names the first rung that produced anything.
+   Only the offline tiers are consulted when `offlineOnly` is set. */
+async function resolveBaseline(term, opts){
+  const o=opts||{};
+  const local=searchLocalDB(term);
+  if(local.length) return {items:local, tier:'local'};
+
+  const usda=searchUSDA(term);
+  if(usda.length) return {items:usda, tier:'usda'};
+
+  if(o.offlineOnly) return {items:[], tier:'none'};
+
+  const live=await searchUSDALive(term);
+  if(live.length) return {items:live, tier:'usda-live'};
+
+  let off=[];
+  try{ off=await offSearch(term); }catch(e){ off=[]; }
+  if(off.length) return {items:off, tier:'off'};
+
+  return {items:[], tier:'none'};
+}
+
 /* Local drinks cheat-sheet (rough, Malaysia market). AI fills anything not here. */
 const DRINK_CHIPS=['Chagee jasmine milk tea','Tealive classic milk tea','ZUS iced latte',
   'Teh tarik','Kopi O','100 Plus can','Milo ais'];
-async function aiCoach(ctx){
-  const txt=await aiText(`You are a supportive nutrition coach focused only on eating for fat loss — not exercise or recovery. In 1-2 short sentences (max ~30 words), give today's single most useful eating directive based on what's left in their budget and their protein gap. Be specific and warm, not preachy. Never recommend eating below the calorie floor. Data:\n${JSON.stringify(ctx)}\nReply with ONLY the coaching line, no quotes.`,200);
+/* ---------- Rule-based coach bank (zero AI calls) ----------
+   Most days sit in one of a handful of predictable states. Answering those locally
+   keeps the coach instant, works offline, and saves the free-tier AI quota for the
+   genuinely ambiguous days. Each rule has several phrasings so it doesn't feel canned.
+   Tone rules: supportive, specific, never preachy, never suggest eating below floor. */
+const COACH_RULES=[
+  { id:'floor',
+    when:c=>c.floor_active,
+    lines:[
+      'You are at your calorie floor. Eat to the target — going lower slows the very thing you are chasing.',
+      'Floor reached. Do not shave more off today; a steady deficit beats a heroic one.',
+      'You have hit the floor. Hold here and let consistency do the work.'
+    ]},
+
+  { id:'empty',
+    when:c=>c.meals_logged===0,
+    lines:[
+      'Nothing logged yet. Front-load protein at your first meal — it makes the rest of the day easier.',
+      'Fresh day. Aim to get roughly a third of your protein in at breakfast.',
+      'Blank slate. Start with a protein-anchored meal and the evening looks after itself.'
+    ]},
+
+  { id:'over',
+    when:c=>c.calories_left<-100,
+    lines:[
+      c=>`You are ${Math.abs(c.calories_left)} kcal past target. One day does not undo a week — pick it up tomorrow.`,
+      'Over target today. Log it honestly, move on, and let the weekly average carry you.',
+      'Past the line. No penance needed — just return to plan at the next meal.'
+    ]},
+
+  { id:'protein-gap-late',
+    when:c=>c.protein_left>30 && c.calories_left<400 && c.calories_left>=0,
+    lines:[
+      c=>`${c.protein_left} g of protein left but only ${c.calories_left} kcal. Go lean: egg whites, tuna, Greek yoghurt, or a shake.`,
+      'Protein is behind and calories are tight. A shake or tin of tuna closes the gap cheaply.',
+      c=>`Tight budget, ${c.protein_left} g protein short. Lean protein only — skip the rice.`
+    ]},
+
+  { id:'protein-gap',
+    when:c=>c.protein_left>25,
+    lines:[
+      c=>`You are ${c.protein_left} g short on protein with ${c.calories_left} kcal to spend. Anchor your next meal around chicken, fish, or eggs.`,
+      c=>`Protein is the gap today — ${c.protein_left} g to go. Make the next plate protein-first.`,
+      'Protein is trailing. Build the next meal around it and fill in the rest afterwards.'
+    ]},
+
+  { id:'high-sugar',
+    when:c=>c.sugar_eaten_g!=null && c.sugar_eaten_g>50,
+    lines:[
+      'Sugar has run high today. Not a crisis — a zero-sugar swap on your next drink evens it out.',
+      'Plenty of sugar in already. Choose the unsweetened version next time round.'
+    ]},
+
+  { id:'low-fibre',
+    when:c=>c.fibre_eaten_g<10 && c.meals_logged>=2,
+    lines:[
+      c=>`Only ${c.fibre_eaten_g} g of fibre so far. Add vegetables or fruit to the next meal — it helps fullness more than another 100 kcal ever would.`,
+      'Fibre is low today. A side of ulam or sayur costs almost nothing and pays off by evening.'
+    ]},
+
+  { id:'on-track-room',
+    when:c=>c.protein_left<=25 && c.calories_left>=300,
+    lines:[
+      c=>`Protein is handled and you have ${c.calories_left} kcal in hand. Spend it on something you will actually enjoy.`,
+      c=>`Comfortably placed — ${c.calories_left} kcal left, protein on target. Dinner is yours.`,
+      'Protein done, budget healthy. This is what a good day looks like at this hour.'
+    ]},
+
+  { id:'on-track-tight',
+    when:c=>c.protein_left<=25 && c.calories_left>=0,
+    lines:[
+      c=>`Protein sorted, ${c.calories_left} kcal left. Keep the last meal light and you land it.`,
+      'On target with a narrow budget. Vegetables and lean protein finish this cleanly.',
+      'Nearly there. Small, protein-led plate and today is a win.'
+    ]},
+
+];
+
+/* Pick a rule-based line. Returns null when no rule fits confidently — the AI takes over.
+   `seed` varies the phrasing across the day without flickering on every re-render. */
+function ruleCoach(ctx, seed){
+  const c={...ctx, protein_left: Math.max(0, (ctx.protein_target_g||0)-(ctx.protein_eaten_g||0))};
+  for(const r of COACH_RULES){
+    let fits=false;
+    try{ fits=r.when(c); }catch(e){ fits=false; }
+    if(!fits) continue;
+    const pick=r.lines[Math.abs(seed||0)%r.lines.length];
+    return typeof pick==='function' ? pick(c) : pick;
+  }
+  return null;
+}
+
+/* Rotating angles so repeat AI calls across a day don't all sound identical. */
+const COACH_ANGLES=[
+  'Focus on what to eat at the very next meal.',
+  'Focus on the protein gap and how to close it.',
+  'Focus on how the remaining budget is best spent.',
+  'Focus on one small swap that improves the day.',
+  'Focus on what is already going well, then one adjustment.'
+];
+
+async function aiCoach(ctx, seed){
+  const angle=COACH_ANGLES[Math.abs(seed||0)%COACH_ANGLES.length];
+  const txt=await aiText(`You are a supportive nutrition coach focused only on eating for fat loss — not exercise or recovery. In 1-2 short sentences (max ~30 words), give today's single most useful eating directive based on what's left in their budget and their protein gap. ${angle} Be specific and warm, not preachy. Vary your sentence opening — do not begin with "You". Never recommend eating below the calorie floor. Data:\n${JSON.stringify(ctx)}\nReply with ONLY the coaching line, no quotes.`,200);
   return txt.trim().replace(/^["']|["']$/g,'');
 }
 
@@ -1874,40 +2350,13 @@ function setupDone(){ return !!(S.height && curWeight()); }
 function renderTodayState(){ /* no-op kept for callers; splash handles first-run gating */ }
 
 /* ---------- targets ---------- */
-// last-known physiology, so the UI can paint instantly without awaiting the network
-let _physCache={recovery:null,burnKcal:null,strainKJ:null};
-
-// Synchronous: paints the whole UI from current state + last-known phys. Never awaits.
-function buildPlan(){
+async function buildPlan(){
   const w=curWeight();
   renderTodayState();
   if(!S.height||!w){ return; }   // no setup yet — welcome card is showing, don't force the sheet
-  const phys = Whoop.connected() ? _physCache : {recovery:null,burnKcal:null,strainKJ:null};
-  computeAndRender(phys);
-  // kick a background phys refresh; only re-renders if the numbers actually changed
-  if(Whoop.connected()) refreshPhys();
-}
+  let phys={recovery:null,burnKcal:null,strainKJ:null};
+  if(Whoop.connected()){ phys=await Whoop.fetchToday(); }
 
-// Pulls fresh Whoop data off the critical path; re-renders only on change.
-let _physInFlight=false;
-async function refreshPhys(){
-  if(_physInFlight) return;
-  _physInFlight=true;
-  try{
-    const fresh=await Whoop.fetchToday();
-    _physInFlight=false;
-    const changed = !_physCache
-      || fresh.burnKcal!==_physCache.burnKcal
-      || fresh.strainKJ!==_physCache.strainKJ
-      || fresh.recovery!==_physCache.recovery;
-    _physCache=fresh;
-    if(changed && S.height && curWeight()){ computeAndRender(fresh); }
-  }catch(e){ _physInFlight=false; }
-}
-
-// The former body of buildPlan — pure compute + render for a given phys object.
-function computeAndRender(phys){
-  const w=curWeight();
   // WATER: 33 ml/kg base, + a bit on higher-burn days (more sweat loss)
   const strainFactor = phys.strainKJ? Math.min(1,(phys.strainKJ-6000)/6000) : 0.3;
   const water=(w*0.033 + Math.max(0,strainFactor)*0.7);
@@ -2645,7 +3094,7 @@ function showEstimate(est){
   // reset the footer button (edit mode may have changed it)
   $('logFood').textContent='Log this meal'; $('logFood').onclick=commitLog;
   const conf={high:'High confidence',medium:'Medium confidence',low:'Low confidence — worth a sanity check'}[est.confidence]||'';
-  const srcLabel={photo:'From your photo',barcode:'From the product label',search:'Database or AI estimate',describe:'AI estimate'}[est.source]||'';
+  const srcLabel={photo:'From your photo',barcode:'From the product label',label:'Read from the nutrition panel',search:'Database or AI estimate',describe:'AI estimate'}[est.source]||'';
   $('foodTitle').textContent=est.dish||'Your food';
   $('foodSub').textContent=conf||srcLabel;
   const itemsBlock = est.items&&est.items.length
@@ -2797,15 +3246,21 @@ $('closeSearch').onclick=closeSheets;
 async function runSearch(){
   const term=$('searchInput').value.trim(); if(!term) return;
   $('searchResults').innerHTML='<div class="spinner"></div>';
-  // 1) Local Malaysian DB first — instant, no network, no AI
-  const local=searchLocalDB(term);
-  let res=[];
-  try{
-    res=await offSearch(term);
-  }catch(e){ res=[]; }
-  // merge: local matches on top, then Open Food Facts
-  res=[...local, ...res];
-  // Database empty or down → fall back to AI estimate (the OFF search endpoint is often unreliable)
+
+  // Walk the resolution ladder: local MY → bundled USDA → live USDA → Open Food Facts.
+  const {items, tier} = await resolveBaseline(term);
+  let res=[...items];
+
+  // If an offline tier answered, still fold in packaged-product hits from OFF — a search
+  // for "milk" should show both the USDA baseline and the branded cartons on the shelf.
+  if(tier==='local' || tier==='usda'){
+    try{
+      const off=await offSearch(term);
+      res=[...res, ...off.filter(x=>x && x.kcal>0)];
+    }catch(e){}
+  }
+
+  // Nothing on any rung → AI estimate, the last resort.
   if(!res.length){
     if(aiReady()){
       $('searchResults').innerHTML='<div class="spinner"></div><div class="smuted" style="margin-top:8px">Database had nothing — asking AI…</div>';
@@ -2825,7 +3280,7 @@ async function runSearch(){
   }
   $('searchResults').innerHTML=res.map((r,i)=>`
     <div class="sresult" data-i="${i}">
-      <div class="sr-info"><div class="sr-name">${r.dish}</div>${r.brand?`<div class="sr-brand">${r.brand}</div>`:''}${r.local?`<div class="sr-badge">★ Local · instant</div>`:''}</div>
+      <div class="sr-info"><div class="sr-name">${r.dish}</div>${r.brand?`<div class="sr-brand">${r.brand}</div>`:''}${r.local?`<div class="sr-badge">★ Local · instant</div>`:r.usda?`<div class="sr-badge">USDA · measured</div>`:''}</div>
       <div class="sr-kcal">${r.kcal}<small>${r.basis}${r.sugar_g!=null?` · ${r.sugar_g}g sugar`:''}</small></div>
     </div>`).join('');
   _searchRes=res;
@@ -2838,29 +3293,47 @@ let _searchRes=[];
 $('searchGo').onclick=runSearch;
 $('searchInput').addEventListener('keydown',e=>{ if(e.key==='Enter') runSearch(); });
 
-/* BARCODE scanner */
-let _scanStream=null,_scanLoop=null;
+/* BARCODE scanner — uses ZXing (pure JS) instead of the native BarcodeDetector API,
+   since Safari/WebKit (and therefore every browser on iOS/iPadOS) has never implemented
+   BarcodeDetector. Without this, scanning silently failed and always fell back to manual entry. */
+let _scanStream=null,_scanReader=null;
 async function openScanner(){
   $('scanSub').textContent='Point your camera at the product barcode.';
   openSheet($('scanSheet'));
-  if(!('BarcodeDetector' in window)){
+  const Z = window.ZXing;
+  if(!Z || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
     $('scanSub').textContent='Your browser can\'t scan here — enter the number below.';
-    return scanManualPrompt(true);
+    return scanManualPrompt();
   }
   try{
-    _scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    const v=$('scanVideo'); v.srcObject=_scanStream; await v.play();
-    const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128']});
-    _scanLoop=setInterval(async()=>{
-      try{ const codes=await det.detect(v);
-        if(codes.length){ const code=codes[0].rawValue; stopScanner(); lookupBarcode(code); }
-      }catch(_){}
-    },600);
-  }catch(e){ $('scanSub').textContent='Camera unavailable — enter the number below.'; }
+    const hints=new Map();
+    hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[
+      Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8,
+      Z.BarcodeFormat.UPC_A,  Z.BarcodeFormat.UPC_E,
+      Z.BarcodeFormat.CODE_128
+    ]);
+    _scanReader=new Z.BrowserMultiFormatReader(hints,{delayBetweenScanAttempts:300});
+    const v=$('scanVideo');
+    await _scanReader.decodeFromConstraints(
+      {video:{facingMode:{ideal:'environment'}}},
+      v,
+      (result,err)=>{
+        if(result){
+          const code=result.getText();
+          stopScanner();
+          lookupBarcode(code);
+        }
+      }
+    );
+    if(v.srcObject) _scanStream=v.srcObject;
+  }catch(e){
+    $('scanSub').textContent='Camera unavailable — enter the number below.';
+  }
 }
 function stopScanner(){
-  if(_scanLoop){clearInterval(_scanLoop);_scanLoop=null;}
-  if(_scanStream){_scanStream.getTracks().forEach(t=>t.stop());_scanStream=null;}
+  try{ if(_scanReader){ _scanReader.reset(); _scanReader=null; } }catch(_){}
+  if(_scanStream){ _scanStream.getTracks().forEach(t=>t.stop()); _scanStream=null; }
+  const v=$('scanVideo'); if(v && v.srcObject){ try{v.srcObject.getTracks().forEach(t=>t.stop());}catch(_){} v.srcObject=null; }
 }
 async function lookupBarcode(code){
   closeSheets();
@@ -2879,6 +3352,33 @@ function scanManualPrompt(){
 }
 $('scanManual').onclick=()=>{ stopScanner(); scanManualPrompt(); };
 $('closeScan').onclick=()=>{ stopScanner(); closeSheets(); };
+
+/* Nutrition-label photo — the escape hatch when a barcode is missing, damaged, or
+   simply not in any database (very common for local and imported products here). */
+$('labelPhoto').onclick=()=>{ stopScanner(); $('labelFile').click(); };
+$('labelFile').onchange=async(ev)=>{
+  const file=ev.target.files[0]; if(!file) return; ev.target.value='';
+  closeSheets();
+  if(!aiReady()){
+    showEstimating('Reading the label…','');
+    estError('Reading a nutrition label needs an AI key. Add one in settings (the gear icon), or enter the barcode number instead.');
+    return;
+  }
+  const {b64,media,thumb}=await prepImage(file);
+  _pendingThumb=thumb;
+  showEstimating('Reading the label…','Transcribing the nutrition panel.');
+  try{
+    const r=await aiEstimateLabel(b64,media);
+    if(!r || !r.kcal){ estError('Couldn\'t read that panel. Try a straight-on, well-lit shot with the whole table in frame.'); return; }
+    showEstimate({
+      dish:r.dish||'Product', brand:r.brand||'', basis:r.basis||'',
+      kcal:Math.round(r.kcal),
+      protein_g:r.protein_g||0, carb_g:r.carb_g||0, fat_g:r.fat_g||0,
+      fiber_g:(r.fiber_g!=null?r.fiber_g:0), sugar_g:(r.sugar_g!=null?r.sugar_g:null),
+      confidence:r.confidence, source:'label', thumb
+    });
+  }catch(e){ estError('Couldn\'t read that panel — try a clearer, straight-on photo of the nutrition table.'); }
+};
 
 /* LOG (any source) */
 function commitLog(){
@@ -2939,10 +3439,6 @@ async function refreshCoach(plan){
     txt.textContent="You've got 1,470 kcal and 80g protein left — a grilled chicken rice or a big poke bowl would close the protein gap nicely without touching your fat budget.";
     return;
   }
-  if(!aiReady()){
-    txt.textContent='Add an AI key in settings (top-right gear) to unlock your daily coach.';
-    card.classList.remove('load'); return;
-  }
   if(!Whoop.connected() && !todayMeals().length){
     txt.textContent='Your daily coach appears here once Whoop\'s connected or you\'ve logged a meal.';
     card.classList.remove('load'); return;
@@ -2952,6 +3448,7 @@ async function refreshCoach(plan){
     calorie_target:plan.intake, calories_eaten:e.kcal, calories_left:plan.intake-e.kcal,
     protein_target_g:plan.protein, protein_eaten_g:Math.round(e.p),
     carbs_eaten_g:Math.round(e.c), fat_eaten_g:Math.round(e.f), fibre_eaten_g:Math.round(e.fb),
+    sugar_eaten_g:Math.round(e.sg||0),
     weight_trend_kg_per_week:lossRate(), meals_logged:todayMeals().length,
     floor_active:plan.flooredHit
   };
@@ -2961,9 +3458,26 @@ async function refreshCoach(plan){
   if(cc.k===ckey && cc.line){ card.classList.remove('load'); txt.textContent=cc.line; _coachKey=ckey; return; }
   if(ckey===_coachKey) return;       // avoid duplicate calls for same state
   _coachKey=ckey;
+
+  // Rule bank first: instant, offline, and free. Seeded by the cache key so the phrasing
+  // is stable for a given state but rotates as the day moves through states.
+  const seed=[...ckey].reduce((a,ch)=>a+ch.charCodeAt(0),0);
+  const rule=ruleCoach(ctx,seed);
+  if(rule){
+    card.classList.remove('load');
+    txt.textContent=rule;
+    saveCoachCache({k:ckey,line:rule});
+    return;
+  }
+
+  // No rule fits confidently — ask AI, if a key is present.
+  if(!aiReady()){
+    txt.textContent='Add an AI key in settings (top-right gear) to unlock your daily coach.';
+    card.classList.remove('load'); return;
+  }
   card.classList.add('load'); txt.textContent='Thinking through your day';
   try{
-    const line=await aiCoach(ctx);
+    const line=await aiCoach(ctx,seed);
     card.classList.remove('load');
     if(line){ txt.textContent=line; saveCoachCache({k:ckey,line}); }
     else txt.textContent='Coach is offline right now — your targets above still hold.';
@@ -3211,7 +3725,7 @@ $('saveSetup').onclick=()=>{
 async function toggleWhoop(){
   if(S.connected){
     if(WORKER_BASE){ try{ await fetch(`${WORKER_BASE}/disconnect?uid=${encodeURIComponent(deviceId())}`); }catch(e){} }
-    S.connected=false; _todayCache=null; _physCache={recovery:null,burnKcal:null,strainKJ:null}; save(S); updateConn(); buildPlan(); toast('Whoop disconnected'); return;
+    S.connected=false; _todayCache=null; save(S); updateConn(); buildPlan(); toast('Whoop disconnected'); return;
   }
   if(WORKER_BASE){
     // real OAuth: themed name modal, then redirect with a connecting overlay
@@ -3952,7 +4466,7 @@ function runSplash(onEnd){
 async function handleWhoopReturn(){
   if(WORKER_BASE && location.hash.includes('whoop=connected')){
     history.replaceState(null,'',location.pathname+location.search);
-    S.connected=true; _todayCache=null; _physCache={recovery:null,burnKcal:null,strainKJ:null}; save(S); updateConn();
+    S.connected=true; _todayCache=null; save(S); updateConn();
     toast('Whoop connected');
     let filled=false;
     try{
