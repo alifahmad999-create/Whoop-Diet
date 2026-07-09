@@ -2105,9 +2105,9 @@ async function searchUSDALive(term){
     if(!r.ok) return [];
     const d=await r.json();
     const foods=(d.foods||[]).slice(0,6);
-    const pick=(nutrients,names)=>{
+    const pick=(nutrients,names,skipKj)=>{
       for(const n of names){
-        const hit=nutrients.find(x=>(x.nutrientName||'').toLowerCase()===n);
+        const hit=nutrients.find(x=>(x.nutrientName||'').toLowerCase()===n && !(skipKj && (x.unitName||'').toUpperCase()==='KJ'));
         if(hit && hit.value!=null) return hit.value;
       }
       return 0;
@@ -2117,7 +2117,7 @@ async function searchUSDALive(term){
       const row={
         name:(f.description||'Food').replace(/\s+/g,' ').trim(),
         serv:100,
-        kcal:pick(n,['energy']),
+        kcal:pick(n,['energy'],true),
         p:pick(n,['protein']),
         c:pick(n,['carbohydrate, by difference']),
         f:pick(n,['total lipid (fat)']),
