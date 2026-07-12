@@ -752,8 +752,12 @@
   .pace b{color:var(--ink);font-weight:700}
   .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);
     background:var(--panel2);border:1px solid var(--line);color:var(--ink);font-size:13px;
-    padding:11px 18px;border-radius:30px;opacity:0;transition:.3s;z-index:60;pointer-events:none}
+    padding:11px 18px;border-radius:30px;opacity:0;transition:.3s;z-index:60;pointer-events:none;
+    display:flex;align-items:center;gap:12px;white-space:nowrap}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.action{pointer-events:auto}
+  .toast-action{background:none;border:none;color:var(--goal);font-size:13px;font-weight:700;
+    padding:0;cursor:pointer}
   .connecting{position:fixed;inset:0;background:rgba(8,13,20,.82);backdrop-filter:blur(6px);
     display:none;align-items:center;justify-content:center;z-index:80}
   .connecting.on{display:flex}
@@ -1470,6 +1474,14 @@
     </div>
     <button class="save" id="pnameSave">Save</button>
     <button class="ghost" id="pnameCancel" style="margin-top:10px">Cancel</button>
+  </div>
+
+  <!-- restore-backup confirm (in-theme, replaces confirm()) -->
+  <div class="sheet" id="restoreConfirmSheet">
+    <h2>Restore this backup?</h2>
+    <p class="s">It replaces the data currently on this device. This can't be undone.</p>
+    <button class="save" id="restoreConfirmGo">Restore backup</button>
+    <button class="ghost" id="restoreConfirmCancel" style="margin-top:10px">Cancel</button>
   </div>
 
   <!-- macro body-composition insight (tap a macro card) -->
@@ -2941,9 +2953,22 @@ const $=id=>document.getElementById(id);
 function esc(s){
   return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1900);}
+let _toastTimer=null;
+function toast(m){
+  const t=$('toast'); clearTimeout(_toastTimer);
+  t.classList.remove('action'); t.textContent=m; t.classList.add('on');
+  _toastTimer=setTimeout(()=>t.classList.remove('on'),1900);
+}
+/* toast with a tap-to-reverse action, e.g. "Meal removed · Undo" */
+function toastAction(m,actionLabel,cb){
+  const t=$('toast'); clearTimeout(_toastTimer);
+  t.innerHTML=`<span>${esc(m)}</span><button type="button" class="toast-action">${esc(actionLabel)}</button>`;
+  t.classList.add('on','action');
+  t.querySelector('.toast-action').onclick=()=>{ clearTimeout(_toastTimer); t.classList.remove('on','action'); cb(); };
+  _toastTimer=setTimeout(()=>t.classList.remove('on','action'),4500);
+}
 function openSheet(el){$('scrim').classList.add('on');el.classList.add('on');}
-function closeSheets(){$('scrim').classList.remove('on');['weighSheet','setupSheet','foodSheet','aiSheet','methodSheet','searchSheet','manualSheet','backfillSheet','mealsSheet','chatSheet','scanSheet','nameSheet','pnameSheet','insightSheet'].forEach(id=>$(id).classList.remove('on'));if(typeof stopScanner==='function')stopScanner();}
+function closeSheets(){$('scrim').classList.remove('on');['weighSheet','setupSheet','foodSheet','aiSheet','methodSheet','searchSheet','manualSheet','backfillSheet','mealsSheet','chatSheet','scanSheet','nameSheet','pnameSheet','insightSheet','restoreConfirmSheet'].forEach(id=>$(id).classList.remove('on'));if(typeof stopScanner==='function')stopScanner();}
 $('scrim').onclick=closeSheets;
 
 /* ---------- water logging ---------- */
@@ -2989,7 +3014,10 @@ function renderFoodLog(){
   $('logHead').onclick=()=>{ _logOpen=!_logOpen; renderFoodLog(); };
   const delMeal=(d)=>{
     const meals=todayMeals(); const m=meals[+d.dataset.i];
-    S.meals=S.meals.filter(x=>x.t!==m.t); save(S); buildPlan(); toast('Meal removed');
+    S.meals=S.meals.filter(x=>x.t!==m.t); save(S); buildPlan();
+    toastAction('Meal removed','Undo',()=>{
+      S.meals.push(m); save(S); buildPlan(); toast('Meal restored');
+    });
   };
   box.querySelectorAll('.fdel').forEach(d=>{
     d.onclick=(ev)=>{ ev.stopPropagation(); delMeal(d); };
@@ -3879,6 +3907,7 @@ $('profBackup').onclick=()=>{
   }catch(e){ toast('Couldn\'t create backup'); }
 };
 $('profRestore').onclick=()=>$('restoreFile').click();
+let _pendingRestore=null;
 $('restoreFile').onchange=(ev)=>{
   const file=ev.target.files[0]; if(!file) return; ev.target.value='';
   const rd=new FileReader();
@@ -3888,16 +3917,23 @@ $('restoreFile').onchange=(ev)=>{
       if(!obj || typeof obj!=='object' || (obj.height===undefined && !Array.isArray(obj.meals))){
         toast('That doesn\'t look like a Whoop Diet backup'); return;
       }
-      if(!confirm('Restore this backup? It replaces the data currently on this device.')) return;
-      // merge over defaults so missing keys don't break anything
-      S=Object.assign({sex:'m',height:null,age:null,goal:null,months:null,deficit:500,
-        weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null},obj);
-      save(S);
-      updateConn(); updateAIPill(); renderProfile(); buildPlan();
-      toast('Data restored');
+      _pendingRestore=obj;
+      openSheet($('restoreConfirmSheet'));
     }catch(e){ toast('Couldn\'t read that file'); }
   };
   rd.readAsText(file);
+};
+$('restoreConfirmCancel').onclick=()=>{ _pendingRestore=null; closeSheets(); };
+$('restoreConfirmGo').onclick=()=>{
+  if(!_pendingRestore) return;
+  // merge over defaults so missing keys don't break anything
+  S=Object.assign({sex:'m',height:null,age:null,goal:null,months:null,deficit:500,
+    weights:[],connected:false,meals:[],savedMeals:[],water:null,grade:null,deviceId:null,aiKey:'',name:'',photo:null},_pendingRestore);
+  _pendingRestore=null;
+  save(S);
+  closeSheets();
+  updateConn(); updateAIPill(); renderProfile(); buildPlan();
+  toast('Data restored');
 };
 
 /* Start fresh — clears logged days only; keeps profile, goal & saved meals. Two-tap confirm. */
