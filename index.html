@@ -2308,13 +2308,24 @@ function deviceId(){
   if(S.deviceId!==id){ S.deviceId=id; save(S); }
   return id;
 }
+/* Signed session id (uid + server HMAC), issued once by the Worker right after a
+   successful Whoop OAuth connect (see handleWhoopReturn). Unlike the bare deviceId,
+   this can't be forged/guessed, so it's what /today and /disconnect require now —
+   /status still accepts the bare uid since it only reveals a connected boolean. */
+function sessionId(next){
+  if(next!==undefined){
+    try{ if(next) localStorage.setItem('whoopdiet.sessionId', next); else localStorage.removeItem('whoopdiet.sessionId'); }catch(e){}
+    return next;
+  }
+  try{ return localStorage.getItem('whoopdiet.sessionId')||''; }catch(e){ return ''; }
+}
 let _todayCache=null;
 const Whoop={
   connected:()=>S.connected,
   async fetchToday(){
     if(WORKER_BASE){
       if(_todayCache) return _todayCache;
-      const r=await fetch(`${WORKER_BASE}/today?uid=${encodeURIComponent(deviceId())}`);
+      const r=await fetch(`${WORKER_BASE}/today?sid=${encodeURIComponent(sessionId())}`);
       const d=await r.json();
       if(d && d.connected){ _todayCache={recovery:d.recovery,burnKcal:d.burnKcal,burnBasis:d.burnBasis,todayKcal:d.todayKcal,strainKJ:d.strainKJ,body:d.body}; return _todayCache; }
       // token missing/expired server-side
@@ -3769,7 +3780,8 @@ $('saveSetup').onclick=()=>{
 /* connect (mock OAuth) */
 async function toggleWhoop(){
   if(S.connected){
-    if(WORKER_BASE){ try{ await fetch(`${WORKER_BASE}/disconnect?uid=${encodeURIComponent(deviceId())}`); }catch(e){} }
+    if(WORKER_BASE){ try{ await fetch(`${WORKER_BASE}/disconnect?sid=${encodeURIComponent(sessionId())}`); }catch(e){} }
+    sessionId(null);
     S.connected=false; _todayCache=null; save(S); updateConn(); buildPlan(); toast('Whoop disconnected'); return;
   }
   if(WORKER_BASE){
@@ -4518,6 +4530,13 @@ function runSplash(onEnd){
 
 async function handleWhoopReturn(){
   if(WORKER_BASE && location.hash.includes('whoop=connected')){
+    // the Worker appends a signed session id here on successful connect — grab it
+    // before the hash is cleared; /today and /disconnect require it from now on.
+    try{
+      const params=new URLSearchParams(location.hash.replace(/^#/,''));
+      const sid=params.get('sid');
+      if(sid) sessionId(sid);
+    }catch(e){}
     history.replaceState(null,'',location.pathname+location.search);
     S.connected=true; _todayCache=null; save(S); updateConn();
     toast('Whoop connected');
