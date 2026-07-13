@@ -43,7 +43,7 @@
 
   <p><strong>WHOOP access tokens:</strong> to read your WHOOP data, the app uses WHOOP's standard OAuth process. WHOOP issues a per-user access token and refresh token. These tokens are stored, encrypted at rest, in a Cloudflare Workers KV store, keyed to an anonymous device identifier. We never receive or store your WHOOP username or password. You can disconnect at any time, which deletes these tokens.</p>
 
-  <p><strong>Food photos and text you log via AI:</strong> if you use the AI features (photo calorie counting, meal descriptions, the coach, or food grades), the relevant image or text is sent to the AI provider <strong>you choose and configure with your own API key</strong> (Anthropic Claude, OpenAI, or Google Gemini). These requests go directly from your device to that provider, or, if you use the hosted-Claude option, via our Cloudflare Worker. We do not store your meal photos or descriptions.</p>
+  <p><strong>Food photos and text you log via AI:</strong> if you use the AI features (photo calorie counting, meal descriptions, the coach, or food grades), the relevant image or text is sent directly from your device to <strong>Google Gemini</strong>, using an API key you obtain and configure yourself. We do not store your meal photos or descriptions, and this data never passes through our own servers.</p>
 
   <h2>3. What we do <em>not</em> do</h2>
   <ul>
@@ -61,7 +61,7 @@
   <p>The app relies on these third parties, each governed by their own privacy policies:</p>
   <ul>
     <li><strong>WHOOP</strong> — source of your fitness data, accessed via the WHOOP API with your consent. See WHOOP's privacy policy at whoop.com.</li>
-    <li><strong>Your chosen AI provider</strong> — Anthropic, OpenAI, or Google, used only if you enable AI features with your own API key. Requests are subject to that provider's privacy and data-use terms.</li>
+    <li><strong>Google Gemini</strong> — used only if you enable AI features with your own API key. Requests go directly from your device to Google and are subject to Google's privacy and data-use terms.</li>
     <li><strong>Cloudflare</strong> — hosts the backend service that stores WHOOP tokens and proxies requests.</li>
     <li><strong>GitHub Pages</strong> — hosts the app's static files.</li>
   </ul>
